@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SignFlow — ระบบนัดติดตั้งป้าย</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --navy:#152A4A;
+    --navy-light:#1F3A63;
+    --navy-lighter:#2A4A78;
+    --accent:#3B6FE0;
+    --accent-dark:#2E58BD;
+    --bg:#F0F3FA;
+    --card:#FFFFFF;
+    --text:#1B2434;
+    --muted:#8892A6;
+    --border:#E6EAF3;
+    --amber:#F5A524;
+    --green:#16B672;
+    --red:#E5484D;
+    --blue:#3B6FE0;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(21,42,74,0.06), 0 1px 2px rgba(21,42,74,0.04);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Leelawadee UI','Noto Sans Thai','Sarabun','Segoe UI',Tahoma,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  .app{display:flex; height:100vh; width:100vw;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:230px; min-width:230px;
+    background:var(--navy);
+    color:#C7D2E8;
+    display:flex; flex-direction:column;
+    padding:20px 14px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    padding:6px 10px 22px 10px;
+    color:#fff; font-weight:700; font-size:18px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    margin-bottom:14px;
+  }
+  .brand .dot{
+    width:34px;height:34px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),#6E9BFF);
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;
+  }
+  .nav{display:flex; flex-direction:column; gap:4px; flex:1;}
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 14px; border-radius:10px;
+    font-size:14.5px; cursor:pointer; color:#AEB9D4;
+    transition:background .15s, color .15s;
+    user-select:none;
+  }
+  .nav-item svg{flex-shrink:0; opacity:.85;}
+  .nav-item:hover{background:rgba(255,255,255,0.06); color:#fff;}
+  .nav-item.active{background:var(--accent); color:#fff; font-weight:600;}
+  .nav-item.active svg{opacity:1;}
+  .sidebar-foot{
+    font-size:12px; color:#6C7A9C; padding:10px 12px 4px;
+    border-top:1px solid rgba(255,255,255,0.08); margin-top:10px;
+  }
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1; display:flex; flex-direction:column; min-width:0;}
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px; background:var(--card); border-bottom:1px solid var(--border);
+  }
+  .topbar h1{font-size:19px; font-weight:700;}
+  .topbar .sub{font-size:13px; color:var(--muted); margin-top:2px; font-weight:400;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--accent); color:#fff; border:none;
+    padding:10px 16px; border-radius:10px; font-size:14px; font-weight:600;
+    cursor:pointer; transition:background .15s, transform .1s;
+    font-family:inherit;
+  }
+  .btn:hover{background:var(--accent-dark);}
+  .btn:active{transform:scale(.97);}
+  .btn-ghost{background:transparent; color:var(--text); border:1px solid var(--border);}
+  .btn-ghost:hover{background:#F5F7FB;}
+  .btn-danger{background:#FEEBEC; color:var(--red);}
+  .btn-danger:hover{background:#FCD9DB;}
+  .btn-sm{padding:7px 12px; font-size:13px;}
+
+  .content{flex:1; overflow-y:auto; padding:22px 28px 40px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadein .18s ease;}
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+  /* ---------- STAT CARDS ---------- */
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px;}
+  .stat-card{
+    background:var(--card); border-radius:var(--radius); padding:16px 18px;
+    box-shadow:var(--shadow); border-left:4px solid var(--accent);
+    cursor:pointer; transition:transform .12s;
+  }
+  .stat-card:hover{transform:translateY(-2px);}
+  .stat-card .label{font-size:12.5px; color:var(--muted); font-weight:600; margin-bottom:6px;}
+  .stat-card .num{font-size:26px; font-weight:700;}
+  .stat-card .num span{font-size:13px; color:var(--muted); font-weight:500; margin-left:4px;}
+  .stat-card.blue{border-color:var(--blue);} .stat-card.blue .num{color:var(--blue);}
+  .stat-card.amber{border-color:var(--amber);} .stat-card.amber .num{color:var(--amber);}
+  .stat-card.green{border-color:var(--green);} .stat-card.green .num{color:var(--green);}
+  .stat-card.red{border-color:var(--red);} .stat-card.red .num{color:var(--red);}
+
+  /* week strip */
+  .week-strip{
+    display:grid; grid-template-columns:repeat(7,1fr); gap:10px; margin-bottom:20px;
+  }
+  .week-day{
+    background:var(--card); border-radius:12px; padding:12px 8px; text-align:center;
+    box-shadow:var(--shadow); cursor:pointer; border:2px solid transparent;
+  }
+  .week-day.today{border-color:var(--accent);}
+  .week-day .dow{font-size:11.5px; color:var(--muted); font-weight:600;}
+  .week-day .dom{font-size:17px; font-weight:700; margin:4px 0;}
+  .week-day .dots{display:flex; justify-content:center; gap:3px; min-height:6px;}
+  .week-day .dots span{width:6px;height:6px;border-radius:50%;}
+
+  /* panels */
+  .panel{
+    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:18px 20px; margin-bottom:18px;
+  }
+  .panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .panel-head h2{font-size:15.5px; font-weight:700;}
+  .tabs{display:flex; gap:6px; background:#F0F3FA; padding:4px; border-radius:10px;}
+  .tab{padding:7px 14px; border-radius:8px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer;}
+  .tab.active{background:var(--card); color:var(--accent); box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+
+  /* job list rows */
+  .job-row{
+    display:flex; align-items:center; gap:14px;
+    padding:12px 10px; border-radius:10px; border-bottom:1px solid var(--border);
+    cursor:pointer; transition:background .12s;
+  }
+  .job-row:last-child{border-bottom:none;}
+  .job-row:hover{background:#F7F9FD;}
+  .job-type-tag{
+    width:8px; height:38px; border-radius:6px; flex-shrink:0;
+  }
+  .job-main{flex:1; min-width:0;}
+  .job-title{font-size:14px; font-weight:700;}
+  .job-sub{font-size:12.5px; color:var(--muted); margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;}
+  .job-time{font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; text-align:right; min-width:56px;}
+  .job-date-tag{font-size:11.5px; color:var(--muted); font-weight:600;}
+  .badge{
+    font-size:11px; font-weight:700; padding:4px 9px; border-radius:20px; white-space:nowrap;
+  }
+  .badge.pending{background:#FFF3DC; color:#B8790A;}
+  .badge.progress{background:#E3EBFD; color:var(--accent-dark);}
+  .badge.done{background:#DEFBEF; color:#0F8A57;}
+  .badge.cancel{background:#FCE4E5; color:#C4292F;}
+  .empty-state{
+    text-align:center; padding:40px 20px; color:var(--muted);
+  }
+  .empty-state .big{font-size:36px; margin-bottom:8px;}
+
+  /* ---------- CALENDAR ---------- */
+  .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
+  .cal-head .month-label{font-size:17px; font-weight:700;}
+  .cal-nav{display:flex; gap:8px;}
+  .icon-btn{
+    width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--card);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .icon-btn:hover{background:#F5F7FB;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px;}
+  .cal-dow{text-align:center; font-size:12px; font-weight:700; color:var(--muted); padding-bottom:6px;}
+  .cal-cell{
+    min-height:92px; background:var(--card); border-radius:10px; padding:8px;
+    border:1px solid var(--border); cursor:pointer; display:flex; flex-direction:column; gap:4px;
+  }
+  .cal-cell:hover{border-color:var(--accent);}
+  .cal-cell.other-month{opacity:.35;}
+  .cal-cell.today{border-color:var(--accent); background:#F3F7FF;}
+  .cal-daynum{font-size:12.5px; font-weight:700;}
+  .cal-job-chip{
+    font-size:10.5px; font-weight:600; padding:2px 6px; border-radius:5px; color:#fff;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cal-more{font-size:10px; color:var(--muted); font-weight:600;}
+
+  /* ---------- JOB LIST VIEW / FILTERS ---------- */
+  .filters{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  .filters input, .filters select{
+    padding:9px 12px; border-radius:9px; border:1px solid var(--border);
+    font-size:13.5px; font-family:inherit; background:var(--card); color:var(--text);
+  }
+  .filters input[type=text]{flex:1; min-width:180px;}
+
+  /* ---------- MODAL ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(15,23,42,0.45);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .overlay.active{display:flex;}
+  .modal{
+    background:var(--card); border-radius:16px; width:100%; max-width:520px;
+    max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 22px; border-bottom:1px solid var(--border);
+  }
+  .modal-head h3{font-size:16.5px; font-weight:700;}
+  .modal-body{padding:20px 22px;}
+  .form-row{margin-bottom:14px;}
+  .form-row label{display:block; font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+  .form-row input, .form-row select, .form-row textarea{
+    width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:9px;
+    font-size:14px; font-family:inherit; color:var(--text); background:#FBFCFE;
+  }
+  .form-row input:focus, .form-row select:focus, .form-row textarea:focus{
+    outline:none; border-color:var(--accent); background:#fff;
+  }
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .type-picker{display:flex; gap:8px;}
+  .type-opt{
+    flex:1; text-align:center; padding:10px 6px; border-radius:9px; border:2px solid var(--border);
+    font-size:12.5px; font-weight:700; cursor:pointer; color:var(--muted);
+  }
+  .type-opt.sel-install.on{border-color:var(--blue); background:#EAF1FE; color:var(--blue);}
+  .type-opt.sel-survey.on{border-color:var(--amber); background:#FFF6E5; color:#B8790A;}
+  .type-opt.sel-plan.on{border-color:var(--green); background:#E6FBF1; color:#0F8A57;}
+  .modal-foot{
+    display:flex; justify-content:space-between; gap:10px; padding:16px 22px;
+    border-top:1px solid var(--border);
+  }
+  .modal-foot .right{display:flex; gap:8px;}
+  textarea{resize:vertical; min-height:60px;}
+
+  /* ---------- SETTINGS / GOOGLE SYNC ---------- */
+  .settings-card{max-width:640px;}
+  .settings-card h2{font-size:15.5px; font-weight:700; margin-bottom:4px;}
+  .settings-card .desc{font-size:13px; color:var(--muted); margin-bottom:18px; line-height:1.6;}
+  .status-pill{
+    display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700;
+    padding:6px 12px; border-radius:20px; margin-bottom:16px;
+  }
+  .status-pill .dot{width:8px;height:8px;border-radius:50%;}
+  .status-pill.off{background:#F2F3F7; color:var(--muted);}
+  .status-pill.off .dot{background:#B4BBCC;}
+  .status-pill.on{background:#E6FBF1; color:#0F8A57;}
+  .status-pill.on .dot{background:var(--green);}
+  .settings-steps{
+    background:#F7F9FD; border:1px solid var(--border); border-radius:12px; padding:14px 16px;
+    font-size:12.5px; color:var(--muted); line-height:1.9; margin-bottom:18px;
+  }
+  .settings-steps b{color:var(--text);}
+  .settings-steps a{color:var(--accent); text-decoration:none;}
+  .settings-steps ol{padding-left:18px;}
+  .sync-log{font-size:12px; color:var(--muted); margin-top:10px; white-space:pre-line;}
+  .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;}
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:#D7DEEC; border-radius:8px;}
+
+  @media (max-width:900px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .week-strip{grid-template-columns:repeat(7,minmax(40px,1fr)); overflow-x:auto;}
+    .form-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="dot">🪧</div>
+      <div>SignFlow</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" data-view="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+        หน้าแรก
+      </div>
+      <div class="nav-item" data-view="calendar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+        ตารางงาน
+      </div>
+      <div class="nav-item" data-view="jobs">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        งานทั้งหมด
+      </div>
+      <div class="nav-item" data-view="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg>
+        Google Calendar
+      </div>
+    </nav>
+    <div class="sidebar-foot" id="syncStatusFoot">ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="topbarTitle">หน้าแรก</h1>
+        <div class="sub" id="topbarSub"></div>
+      </div>
+      <button class="btn" id="btnNewJob">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        เพิ่มงานใหม่
+      </button>
+    </div>
+
+    <div class="content">
+
+      <!-- ================= DASHBOARD ================= -->
+      <div class="view active" id="view-dashboard">
+        <div class="stats">
+          <div class="stat-card blue" data-filter="today">
+            <div class="label">งานวันนี้</div>
+            <div class="num" id="statToday">0 <span>งาน</span></div>
+          </div>
+          <div class="stat-card amber" data-filter="tomorrow">
+            <div class="label">งานพรุ่งนี้</div>
+            <div class="num" id="statTomorrow">0 <span>งาน</span></div>
+          </div>
+          <div class="stat-card green" data-filter="week">
+            <div class="label">7 วันข้างหน้า</div>
+            <div class="num" id="statWeek">0 <span>งาน</span></div>
+          </div>
+          <div class="stat-card red" data-filter="overdue">
+            <div class="label">ค้างดำเนินการ</div>
+            <div class="num" id="statOverdue">0 <span>งาน</span></div>
+          </div>
+        </div>
+
+        <div class="week-strip" id="weekStrip"></div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2 id="listPanelTitle">งานวันนี้</h2>
+            <div class="tabs">
+              <div class="tab active" data-range="today">วันนี้</div>
+              <div class="tab" data-range="tomorrow">พรุ่งนี้</div>
+              <div class="tab" data-range="week">7 วัน</div>
+            </div>
+          </div>
+          <div id="dashboardJobList"></div>
+        </div>
+      </div>
+
+      <!-- ================= CALENDAR ================= -->
+      <div class="view" id="view-calendar">
+        <div class="panel">
+          <div class="cal-head">
+            <div class="month-label" id="calMonthLabel"></div>
+            <div class="cal-nav">
+              <div class="icon-btn" id="calPrev">‹</div>
+              <div class="icon-btn" id="calToday">•</div>
+              <div class="icon-btn" id="calNext">›</div>
+            </div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </div>
+
+      <!-- ================= ALL JOBS ================= -->
+      <div class="view" id="view-jobs">
+        <div class="panel">
+          <div class="filters">
+            <input type="text" id="searchInput" placeholder="ค้นหาชื่อลูกค้า / สถานที่ / เบอร์โทร...">
+            <select id="filterType">
+              <option value="">ทุกประเภทงาน</option>
+              <option value="install">ติดตั้งป้าย</option>
+              <option value="survey">สำรวจหน้างาน</option>
+              <option value="plan">วางแผนงาน</option>
+            </select>
+            <select id="filterStatus">
+              <option value="">ทุกสถานะ</option>
+              <option value="pending">รอดำเนินการ</option>
+              <option value="progress">กำลังดำเนินการ</option>
+              <option value="done">เสร็จแล้ว</option>
+              <option value="cancel">ยกเลิก</option>
+            </select>
+          </div>
+          <div id="allJobsList"></div>
+        </div>
+      </div>
+
+      <!-- ================= GOOGLE CALENDAR SETTINGS ================= -->
+      <div class="view" id="view-settings">
+        <div class="panel settings-card">
+          <h2>เชื่อมต่อ Google Calendar</h2>
+          <div class="desc">ซิงค์งานติดตั้งป้ายทั้งหมดเข้า Google Calendar ปฏิทินแยกชื่อ "SignFlow - งานติดตั้งป้าย" อัตโนมัติ ต้องมีอินเทอร์เน็ตตอนซิงค์</div>
+
+          <div class="status-pill off" id="gStatusPill"><span class="dot"></span><span id="gStatusText">ยังไม่ได้เชื่อมต่อ</span></div>
+
+          <div class="settings-steps" id="gSetupSteps">
+            <b>ตั้งค่าครั้งแรก (ทำครั้งเดียว):</b>
+            <ol>
+              <li>ต้อง host ไฟล์นี้บน URL จริง (https://) เช่น GitHub Pages — ใช้แบบเปิดไฟล์ตรงๆ (file://) เชื่อมต่อไม่ได้</li>
+              <li>ไปที่ <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a> สร้างโปรเจกต์ใหม่ แล้วเปิดใช้ "Google Calendar API"</li>
+              <li>ตั้งค่า OAuth consent screen (เลือก External) และเพิ่ม scope <code>calendar.events</code></li>
+              <li>สร้าง OAuth Client ID ประเภท "Web application" แล้วเพิ่ม URL ที่ host ไฟล์นี้ไว้ใน "Authorized JavaScript origins"</li>
+              <li>คัดลอก Client ID มาวางด้านล่าง แล้วกด "บันทึก Client ID"</li>
+            </ol>
+          </div>
+
+          <div class="form-row">
+            <label>Google OAuth Client ID</label>
+            <input type="text" id="gClientId" placeholder="xxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-ghost btn-sm" id="btnSaveClientId">บันทึก Client ID</button>
+            <button class="btn btn-sm" id="btnConnectGoogle" disabled>เชื่อมต่อ Google Calendar</button>
+            <button class="btn btn-ghost btn-sm" id="btnSyncNow" style="display:none;">ซิงค์ตอนนี้</button>
+          </div>
+          <div class="sync-log" id="gSyncLog"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ================= MODAL ================= -->
+<div class="overlay" id="jobModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">เพิ่มงานใหม่</h3>
+      <div class="icon-btn" id="modalClose">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>ประเภทงาน</label>
+        <div class="type-picker">
+          <div class="type-opt sel-install" data-type="install">ติดตั้งป้าย</div>
+          <div class="type-opt sel-survey" data-type="survey">สำรวจหน้างาน</div>
+          <div class="type-opt sel-plan" data-type="plan">วางแผนงาน</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>ชื่องาน / ลูกค้า</label>
+        <input type="text" id="fTitle" placeholder="เช่น ร้านกาแฟดอยคำ - ป้ายหน้าร้าน">
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>วันที่</label>
+          <input type="date" id="fDate">
+        </div>
+        <div class="form-row">
+          <label>เวลา</label>
+          <input type="time" id="fTime">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>สถานที่หน้างาน</label>
+        <input type="text" id="fAddress" placeholder="ที่อยู่ / จุดสังเกต">
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>เบอร์โทรติดต่อ</label>
+          <input type="text" id="fPhone" placeholder="08x-xxx-xxxx">
+        </div>
+        <div class="form-row">
+          <label>สถานะ</label>
+          <select id="fStatus">
+            <option value="pending">รอดำเนินการ</option>
+            <option value="progress">กำลังดำเนินการ</option>
+            <option value="done">เสร็จแล้ว</option>
+            <option value="cancel">ยกเลิก</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>รายละเอียด / หมายเหตุ</label>
+        <textarea id="fNotes" placeholder="รายละเอียดงาน ขนาดป้าย วัสดุ ทีมงาน ฯลฯ"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div>
+        <button class="btn btn-danger btn-sm" id="btnDelete" style="display:none;">ลบงานนี้</button>
+      </div>
+      <div class="right">
+        <button class="btn btn-ghost btn-sm" id="btnCancel">ยกเลิก</button>
+        <button class="btn btn-sm" id="btnSave">บันทึกงาน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const STORAGE_KEY = "signflow_jobs_v1";
+  const TYPE_LABEL = {install:"ติดตั้งป้าย", survey:"สำรวจหน้างาน", plan:"วางแผนงาน"};
+  const TYPE_COLOR  = {install:"var(--blue)", survey:"var(--amber)", plan:"var(--green)"};
+  const TYPE_HEX    = {install:"#3B6FE0", survey:"#F5A524", plan:"#16B672"};
+  const STATUS_LABEL = {pending:"รอดำเนินการ", progress:"กำลังดำเนินการ", done:"เสร็จแล้ว", cancel:"ยกเลิก"};
+  const DOW_TH = ["อา","จ","อ","พ","พฤ","ศ","ส"];
+  const MONTH_TH = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+  let jobs = [];
+  let editingId = null;
+  let selectedType = "install";
+  let calCursor = new Date(); calCursor.setDate(1);
+  let dashRange = "today";
+
+  // ---------- Google Calendar sync state ----------
+  const G_CLIENT_ID_KEY = "signflow_g_client_id";
+  const G_CALENDAR_ID_KEY = "signflow_g_calendar_id";
+  const G_LASTSYNC_KEY = "signflow_g_lastsync";
+  let gClientId = localStorage.getItem(G_CLIENT_ID_KEY) || "";
+  let gCalendarId = localStorage.getItem(G_CALENDAR_ID_KEY) || "";
+  let gAccessToken = null;
+  let gTokenClient = null;
+  let gConnected = false;
+
+  // ---------- persistence ----------
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      jobs = raw ? JSON.parse(raw) : seedData();
+      if(!raw) save();
+    }catch(e){ jobs = seedData(); }
+  }
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs)); }
+    catch(e){ console.error("บันทึกข้อมูลไม่สำเร็จ", e); }
+  }
+  function seedData(){
+    const t = new Date();
+    const fmt = (d)=> d.toISOString().slice(0,10);
+    const mk = (offsetDays, o) => Object.assign({
+      id: cryptoId(), time:"09:00", address:"", phone:"", status:"pending", notes:"",
+      googleEventId:null, updatedAt: Date.now()
+    }, {date: fmt(new Date(t.getFullYear(),t.getMonth(),t.getDate()+offsetDays))}, o);
+    return [
+      mk(0, {title:"ร้านกาแฟดอยคำ - ป้ายหน้าร้าน", type:"install", time:"09:30", address:"ถ.สายเอเซีย มหาสารคาม", phone:"081-234-5678", status:"progress", notes:"ป้ายไฟ LED ขนาด 3x1.5 ม."}),
+      mk(0, {title:"บริษัท กรีนฟาร์ม จำกัด", type:"survey", time:"14:00", address:"นิคมอุตสาหกรรม", phone:"089-111-2222", status:"pending"}),
+      mk(1, {title:"ร้านสะดวกซัก วอชแอนด์โก", type:"install", time:"10:00", address:"หน้ามหาวิทยาลัย", phone:"082-345-6789", status:"pending", notes:"ป้ายอะคริลิคพร้อมไฟ"}),
+      mk(3, {title:"คลินิกทันตกรรมยิ้มสวย", type:"plan", time:"13:30", address:"", phone:"086-777-8888", status:"pending", notes:"ประชุมวางแผนออกแบบป้าย"}),
+      mk(4, {title:"ปั๊มน้ำมัน พีที ถนนสายหลัก", type:"survey", time:"08:30", address:"ถ.แจ้งสนิท", phone:"", status:"pending"}),
+      mk(-1, {title:"ร้านนวดแผนไทยสุขใจ", type:"install", time:"11:00", address:"", phone:"080-999-1111", status:"pending", notes:"ค้างจากสัปดาห์ก่อน"}),
+    ];
+  }
+  function cryptoId(){ return "j" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+  // ---------- date helpers ----------
+  function todayStr(){ return dateStr(new Date()); }
+  function dateStr(d){ return d.toISOString().slice(0,10); }
+  function addDays(dateObj, n){ const d = new Date(dateObj); d.setDate(d.getDate()+n); return d; }
+  function parseDate(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+  function fmtDateTH(s){
+    const d = parseDate(s);
+    return d.getDate() + " " + MONTH_TH[d.getMonth()] + " " + (d.getFullYear()+543);
+  }
+  function isSameDay(a,b){ return dateStr(a)===dateStr(b); }
+
+  // ---------- rendering: dashboard ----------
+  function jobsForRange(range){
+    const t0 = new Date(); t0.setHours(0,0,0,0);
+    const tomorrow = addDays(t0,1);
+    const weekEnd = addDays(t0,7);
+    return jobs.filter(j=>{
+      const jd = parseDate(j.date);
+      if(range==="today") return isSameDay(jd,t0);
+      if(range==="tomorrow") return isSameDay(jd,tomorrow);
+      if(range==="week") return jd>=t0 && jd<weekEnd;
+      if(range==="overdue") return jd<t0 && j.status!=="done" && j.status!=="cancel";
+      return true;
+    }).sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
+  }
+
+  function renderStats(){
+    document.getElementById("statToday").innerHTML = jobsForRange("today").length + " <span>งาน</span>";
+    document.getElementById("statTomorrow").innerHTML = jobsForRange("tomorrow").length + " <span>งาน</span>";
+    document.getElementById("statWeek").innerHTML = jobsForRange("week").length + " <span>งาน</span>";
+    document.getElementById("statOverdue").innerHTML = jobsForRange("overdue").length + " <span>งาน</span>";
+  }
+
+  function renderWeekStrip(){
+    const el = document.getElementById("weekStrip");
+    el.innerHTML = "";
+    const t0 = new Date(); t0.setHours(0,0,0,0);
+    for(let i=0;i<7;i++){
+      const d = addDays(t0,i);
+      const ds = dateStr(d);
+      const dayJobs = jobs.filter(j=>j.date===ds);
+      const div = document.createElement("div");
+      div.className = "week-day" + (i===0 ? " today":"");
+      div.innerHTML = `
+        <div class="dow">${DOW_TH[d.getDay()]}</div>
+        <div class="dom">${d.getDate()}</div>
+        <div class="dots">${dayJobs.slice(0,4).map(j=>`<span style="background:${TYPE_HEX[j.type]}"></span>`).join("")}</div>
+      `;
+      div.addEventListener("click", ()=>{
+        switchView("calendar");
+        calCursor = new Date(d.getFullYear(), d.getMonth(), 1);
+        renderCalendar();
+      });
+      el.appendChild(div);
+    }
+  }
+
+  function jobRowHTML(j){
+    const badgeClass = j.status;
+    return `
+      <div class="job-row" data-id="${j.id}">
+        <div class="job-type-tag" style="background:${TYPE_HEX[j.type]}"></div>
+        <div class="job-main">
+          <div class="job-title">${escapeHTML(j.title)}</div>
+          <div class="job-sub">
+            <span>${TYPE_LABEL[j.type]}</span>
+            ${j.address ? `<span>📍 ${escapeHTML(j.address)}</span>` : ""}
+            ${j.phone ? `<span>📞 ${escapeHTML(j.phone)}</span>` : ""}
+          </div>
+        </div>
+        <div class="job-date-tag">${fmtDateTH(j.date)}</div>
+        <div class="job-time">${j.time || "-"}</div>
+        <div class="badge ${badgeClass}">${STATUS_LABEL[j.status]}</div>
+      </div>
+    `;
+  }
+
+  function renderDashboardList(){
+    const el = document.getElementById("dashboardJobList");
+    const list = jobsForRange(dashRange);
+    const titles = {today:"งานวันนี้", tomorrow:"งานพรุ่งนี้", week:"งาน 7 วันข้างหน้า"};
+    document.getElementById("listPanelTitle").textContent = titles[dashRange];
+    if(list.length===0){
+      el.innerHTML = `<div class="empty-state"><div class="big">🗓️</div>ไม่มีงานในช่วงนี้</div>`;
+      return;
+    }
+    el.innerHTML = list.map(jobRowHTML).join("");
+    attachRowClicks(el);
+  }
+
+  function attachRowClicks(container){
+    container.querySelectorAll(".job-row").forEach(row=>{
+      row.addEventListener("click", ()=> openModal(row.dataset.id));
+    });
+  }
+
+  // ---------- rendering: calendar ----------
+  function renderCalendar(){
+    const y = calCursor.getFullYear(), m = calCursor.getMonth();
+    document.getElementById("calMonthLabel").textContent = MONTH_TH[m] + " " + (y+543);
+    const grid = document.getElementById("calGrid");
+    grid.innerHTML = "";
+    DOW_TH.forEach(d=>{
+      const h = document.createElement("div");
+      h.className = "cal-dow"; h.textContent = d;
+      grid.appendChild(h);
+    });
+    const firstDow = new Date(y,m,1).getDay();
+    const daysInMonth = new Date(y,m+1,0).getDate();
+    const daysInPrev = new Date(y,m,0).getDate();
+    const todayDs = todayStr();
+    const totalCells = Math.ceil((firstDow+daysInMonth)/7)*7;
+
+    for(let i=0;i<totalCells;i++){
+      const cell = document.createElement("div");
+      let dayNum, cellDate, otherMonth=false;
+      if(i < firstDow){
+        dayNum = daysInPrev - firstDow + i + 1;
+        cellDate = new Date(y, m-1, dayNum);
+        otherMonth = true;
+      } else if(i >= firstDow + daysInMonth){
+        dayNum = i - (firstDow+daysInMonth) + 1;
+        cellDate = new Date(y, m+1, dayNum);
+        otherMonth = true;
+      } else {
+        dayNum = i - firstDow + 1;
+        cellDate = new Date(y, m, dayNum);
+      }
+      const ds = dateStr(cellDate);
+      cell.className = "cal-cell" + (otherMonth ? " other-month":"") + (ds===todayDs ? " today":"");
+      const dayJobs = jobs.filter(j=>j.date===ds).sort((a,b)=>a.time.localeCompare(b.time));
+      let chipsHTML = dayJobs.slice(0,3).map(j=>
+        `<div class="cal-job-chip" style="background:${TYPE_HEX[j.type]}" data-id="${j.id}">${j.time} ${escapeHTML(j.title)}</div>`
+      ).join("");
+      if(dayJobs.length>3) chipsHTML += `<div class="cal-more">+${dayJobs.length-3} เพิ่มเติม</div>`;
+      cell.innerHTML = `<div class="cal-daynum">${dayNum}</div>${chipsHTML}`;
+      cell.addEventListener("click",(e)=>{
+        const chip = e.target.closest(".cal-job-chip");
+        if(chip){ openModal(chip.dataset.id); return; }
+        openModal(null, ds);
+      });
+      grid.appendChild(cell);
+    }
+  }
+
+  // ---------- rendering: all jobs ----------
+  function renderAllJobs(){
+    const el = document.getElementById("allJobsList");
+    const q = document.getElementById("searchInput").value.trim().toLowerCase();
+    const ft = document.getElementById("filterType").value;
+    const fs = document.getElementById("filterStatus").value;
+    let list = jobs.slice().sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time));
+    if(q) list = list.filter(j=>
+      j.title.toLowerCase().includes(q) ||
+      (j.address||"").toLowerCase().includes(q) ||
+      (j.phone||"").toLowerCase().includes(q)
+    );
+    if(ft) list = list.filter(j=>j.type===ft);
+    if(fs) list = list.filter(j=>j.status===fs);
+    if(list.length===0){
+      el.innerHTML = `<div class="empty-state"><div class="big">📋</div>ไม่พบงานที่ค้นหา</div>`;
+      return;
+    }
+    el.innerHTML = list.map(jobRowHTML).join("");
+    attachRowClicks(el);
+  }
+
+  // ---------- modal ----------
+  function openModal(id, presetDate){
+    editingId = id;
+    const modal = document.getElementById("jobModalOverlay");
+    const deleteBtn = document.getElementById("btnDelete");
+    if(id){
+      const j = jobs.find(x=>x.id===id);
+      document.getElementById("modalTitle").textContent = "แก้ไขงาน";
+      selectType(j.type);
+      document.getElementById("fTitle").value = j.title;
+      document.getElementById("fDate").value = j.date;
+      document.getElementById("fTime").value = j.time;
+      document.getElementById("fAddress").value = j.address;
+      document.getElementById("fPhone").value = j.phone;
+      document.getElementById("fStatus").value = j.status;
+      document.getElementById("fNotes").value = j.notes;
+      deleteBtn.style.display = "inline-flex";
+    } else {
+      document.getElementById("modalTitle").textContent = "เพิ่มงานใหม่";
+      selectType("install");
+      document.getElementById("fTitle").value = "";
+      document.getElementById("fDate").value = presetDate || todayStr();
+      document.getElementById("fTime").value = "09:00";
+      document.getElementById("fAddress").value = "";
+      document.getElementById("fPhone").value = "";
+      document.getElementById("fStatus").value = "pending";
+      document.getElementById("fNotes").value = "";
+      deleteBtn.style.display = "none";
+    }
+    modal.classList.add("active");
+  }
+  function closeModal(){
+    document.getElementById("jobModalOverlay").classList.remove("active");
+    editingId = null;
+  }
+  function selectType(t){
+    selectedType = t;
+    document.querySelectorAll(".type-opt").forEach(el=>{
+      el.classList.toggle("on", el.dataset.type===t);
+    });
+  }
+  function submitForm(){
+    const title = document.getElementById("fTitle").value.trim();
+    if(!title){ alert("กรุณากรอกชื่องาน / ลูกค้า"); return; }
+    const date = document.getElementById("fDate").value || todayStr();
+    const data = {
+      title,
+      type: selectedType,
+      date,
+      time: document.getElementById("fTime").value || "09:00",
+      address: document.getElementById("fAddress").value.trim(),
+      phone: document.getElementById("fPhone").value.trim(),
+      status: document.getElementById("fStatus").value,
+      notes: document.getElementById("fNotes").value.trim(),
+    };
+    data.updatedAt = Date.now();
+    let savedJob;
+    if(editingId){
+      const idx = jobs.findIndex(x=>x.id===editingId);
+      const old = jobs[idx];
+      savedJob = Object.assign({}, old, data, {id:editingId});
+      jobs[idx] = savedJob;
+    } else {
+      savedJob = Object.assign({id:cryptoId(), googleEventId:null}, data);
+      jobs.push(savedJob);
+    }
+    save();
+    closeModal();
+    renderAll();
+    if(gConnected) pushSingleJob(savedJob).catch(e=>console.error(e));
+  }
+  function deleteCurrent(){
+    if(!editingId) return;
+    if(!confirm("ต้องการลบงานนี้ใช่หรือไม่?")) return;
+    const job = jobs.find(x=>x.id===editingId);
+    jobs = jobs.filter(x=>x.id!==editingId);
+    save();
+    closeModal();
+    renderAll();
+    if(gConnected && job && job.googleEventId){
+      deleteGoogleEvent(job.googleEventId).catch(e=>console.error(e));
+    }
+  }
+
+  // ================= GOOGLE CALENDAR SYNC =================
+  const G_CAL_NAME = "SignFlow - งานติดตั้งป้าย";
+  const G_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
+
+  function gLog(msg){
+    const el = document.getElementById("gSyncLog");
+    const time = new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
+    el.textContent = `[${time}] ${msg}\n` + el.textContent;
+  }
+
+  function renderSettingsView(){
+    document.getElementById("gClientId").value = gClientId;
+    document.getElementById("btnConnectGoogle").disabled = !gClientId;
+    updateGoogleStatusUI();
+  }
+
+  function updateGoogleStatusUI(){
+    const pill = document.getElementById("gStatusPill");
+    const text = document.getElementById("gStatusText");
+    const syncBtn = document.getElementById("btnSyncNow");
+    const connectBtn = document.getElementById("btnConnectGoogle");
+    if(gConnected){
+      pill.className = "status-pill on";
+      const last = localStorage.getItem(G_LASTSYNC_KEY);
+      text.textContent = "เชื่อมต่อแล้ว" + (last ? " • ซิงค์ล่าสุด " + new Date(Number(last)).toLocaleString("th-TH") : "");
+      syncBtn.style.display = "inline-flex";
+      connectBtn.textContent = "เชื่อมต่อใหม่ (ต่ออายุ token)";
+    } else {
+      pill.className = "status-pill off";
+      text.textContent = "ยังไม่ได้เชื่อมต่อ";
+      syncBtn.style.display = "none";
+      connectBtn.textContent = "เชื่อมต่อ Google Calendar";
+    }
+    document.getElementById("syncStatusFoot").innerHTML = gConnected
+      ? "เชื่อมต่อ Google Calendar แล้ว<br>กด \"ซิงค์ตอนนี้\" เพื่ออัปเดต"
+      : "ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์";
+  }
+
+  function ensureGisReady(cb, tries){
+    tries = tries || 0;
+    if(window.google && google.accounts && google.accounts.oauth2){ cb(); return; }
+    if(tries > 40){ gLog("โหลด Google Sign-In ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต / ต้อง host เป็น https"); return; }
+    setTimeout(()=> ensureGisReady(cb, tries+1), 250);
+  }
+
+  function saveClientId(){
+    const val = document.getElementById("gClientId").value.trim();
+    if(!val){ alert("กรุณาวาง Client ID"); return; }
+    gClientId = val;
+    localStorage.setItem(G_CLIENT_ID_KEY, gClientId);
+    document.getElementById("btnConnectGoogle").disabled = false;
+    gLog("บันทึก Client ID แล้ว กด \"เชื่อมต่อ Google Calendar\" ได้เลย");
+  }
+
+  function connectGoogle(){
+    if(!gClientId){ alert("ใส่ Client ID ก่อน"); return; }
+    ensureGisReady(function(){
+      try{
+        gTokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: gClientId,
+          scope: G_SCOPE,
+          callback: onGoogleToken
+        });
+        gTokenClient.requestAccessToken({prompt: gAccessToken ? "" : "consent"});
+      }catch(e){
+        console.error(e);
+        gLog("เชื่อมต่อไม่สำเร็จ: " + e.message + " (ตรวจสอบว่า origin ปัจจุบันถูกเพิ่มใน Authorized JavaScript origins แล้ว)");
+      }
+    });
+  }
+
+  async function onGoogleToken(resp){
+    if(resp.error){
+      gLog("การยืนยันตัวตนล้มเหลว: " + resp.error);
+      return;
+    }
+    gAccessToken = resp.access_token;
+    gConnected = true;
+    updateGoogleStatusUI();
+    gLog("เชื่อมต่อสำเร็จ กำลังเตรียมปฏิทิน SignFlow...");
+    try{
+      await ensureCalendar();
+      gLog('พร้อมใช้งาน — ปฏิทิน "' + G_CAL_NAME + '" พร้อมแล้ว');
+      await syncNow();
+    }catch(e){
+      console.error(e);
+      gLog("เกิดข้อผิดพลาด: " + e.message);
+    }
+  }
+
+  async function gApi(path, options){
+    options = options || {};
+    options.headers = Object.assign({}, options.headers, {
+      "Authorization": "Bearer " + gAccessToken,
+      "Content-Type": "application/json"
+    });
+    const res = await fetch("https://www.googleapis.com/calendar/v3" + path, options);
+    if(res.status === 401){
+      gConnected = false;
+      updateGoogleStatusUI();
+      throw new Error("Token หมดอายุ กรุณากดเชื่อมต่อใหม่อีกครั้ง");
+    }
+    if(res.status === 204) return null;
+    const data = await res.json().catch(()=>null);
+    if(!res.ok){ throw new Error((data && data.error && data.error.message) || res.statusText); }
+    return data;
+  }
+
+  async function ensureCalendar(){
+    if(gCalendarId){
+      try{ await gApi("/calendars/" + encodeURIComponent(gCalendarId)); return; }
+      catch(e){ /* stored calendar no longer valid, fall through to recreate */ }
+    }
+    const list = await gApi("/users/me/calendarList?maxResults=250");
+    const found = (list.items||[]).find(c=>c.summary===G_CAL_NAME);
+    if(found){
+      gCalendarId = found.id;
+    } else {
+      const created = await gApi("/calendars", {method:"POST", body: JSON.stringify({summary: G_CAL_NAME, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone})});
+      gCalendarId = created.id;
+    }
+    localStorage.setItem(G_CALENDAR_ID_KEY, gCalendarId);
+  }
+
+  function addMinutes(timeStr, mins){
+    const [h,m] = timeStr.split(":").map(Number);
+    let total = h*60+m+mins;
+    let dayOffset = 0;
+    while(total >= 24*60){ total -= 24*60; dayOffset++; }
+    const hh = String(Math.floor(total/60)).padStart(2,"0");
+    const mm = String(total%60).padStart(2,"0");
+    return {time: `${hh}:${mm}`, dayOffset};
+  }
+
+  function jobToEventBody(job){
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const end = addMinutes(job.time || "09:00", 60);
+    const endDate = end.dayOffset ? dateStr(addDays(parseDate(job.date), end.dayOffset)) : job.date;
+    const descLines = [
+      "ประเภทงาน: " + TYPE_LABEL[job.type],
+      "สถานะ: " + STATUS_LABEL[job.status],
+      job.phone ? "เบอร์โทร: " + job.phone : null,
+      job.notes ? "หมายเหตุ: " + job.notes : null
+    ].filter(Boolean);
+    return {
+      summary: job.title,
+      location: job.address || "",
+      description: descLines.join("\n"),
+      start: {dateTime: `${job.date}T${job.time || "09:00"}:00`, timeZone: tz},
+      end: {dateTime: `${endDate}T${end.time}:00`, timeZone: tz},
+      extendedProperties: {private: {signflowId: job.id}}
+    };
+  }
+
+  async function pushSingleJob(job){
+    if(!gConnected) return;
+    const body = jobToEventBody(job);
+    if(job.googleEventId){
+      await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events/${job.googleEventId}`, {method:"PATCH", body: JSON.stringify(body)});
+    } else {
+      const created = await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events`, {method:"POST", body: JSON.stringify(body)});
+      job.googleEventId = created.id;
+      save();
+    }
+  }
+
+  async function deleteGoogleEvent(eventId){
+    if(!gConnected) return;
+    try{ await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events/${eventId}`, {method:"DELETE"}); }
+    catch(e){ console.error(e); }
+  }
+
+  async function pushAllJobs(){
+    for(const job of jobs){
+      try{ await pushSingleJob(job); }
+      catch(e){ console.error("push failed for", job.title, e); }
+    }
+  }
+
+  async function pullEvents(){
+    const data = await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events?maxResults=2500&singleEvents=true&showDeleted=false`);
+    let created = 0, updated = 0;
+    (data.items||[]).forEach(ev=>{
+      const localId = ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.signflowId;
+      const evUpdatedAt = new Date(ev.updated).getTime();
+      if(localId){
+        const idx = jobs.findIndex(j=>j.id===localId);
+        if(idx>-1){
+          if(evUpdatedAt > (jobs[idx].updatedAt||0)){
+            jobs[idx] = Object.assign({}, jobs[idx], eventToJobFields(ev), {updatedAt: evUpdatedAt});
+            updated++;
+          }
+        }
+      } else {
+        // event created directly in Google Calendar - import as new job
+        const newJob = Object.assign({id:cryptoId(), googleEventId: ev.id, updatedAt: evUpdatedAt}, eventToJobFields(ev));
+        jobs.push(newJob);
+        created++;
+      }
+    });
+    if(created || updated){ save(); renderAll(); }
+    return {created, updated};
+  }
+
+  function eventToJobFields(ev){
+    const startStr = (ev.start && (ev.start.dateTime || ev.start.date)) || todayStr();
+    const date = startStr.slice(0,10);
+    const time = (ev.start && ev.start.dateTime) ? startStr.slice(11,16) : "09:00";
+    return {
+      title: ev.summary || "(ไม่มีชื่องาน)",
+      type: "install",
+      date, time,
+      address: ev.location || "",
+      phone: "",
+      status: "pending",
+      notes: ev.description || ""
+    };
+  }
+
+  async function syncNow(){
+    if(!gConnected){ alert("กรุณาเชื่อมต่อ Google Calendar ก่อน"); return; }
+    gLog("กำลังซิงค์...");
+    try{
+      await pushAllJobs();
+      const result = await pullEvents();
+      localStorage.setItem(G_LASTSYNC_KEY, String(Date.now()));
+      updateGoogleStatusUI();
+      gLog(`ซิงค์เสร็จสิ้น — ส่งออก ${jobs.length} งาน, นำเข้าใหม่ ${result.created} งาน, อัปเดต ${result.updated} งาน`);
+    }catch(e){
+      console.error(e);
+      gLog("ซิงค์ไม่สำเร็จ: " + e.message);
+    }
+  }
+
+  // ---------- view switching ----------
+  function switchView(view){
+    document.querySelectorAll(".nav-item").forEach(el=> el.classList.toggle("active", el.dataset.view===view));
+    document.querySelectorAll(".view").forEach(el=> el.classList.remove("active"));
+    document.getElementById("view-"+view).classList.add("active");
+    const titles = {dashboard:["หน้าแรก",""], calendar:["ตารางงาน","วางแผนและดูตารางงานรายเดือน"], jobs:["งานทั้งหมด","ค้นหาและจัดการงานทุกรายการ"], settings:["Google Calendar","เชื่อมต่อและซิงค์งานกับ Google Calendar"]};
+    document.getElementById("topbarTitle").textContent = titles[view][0];
+    document.getElementById("topbarSub").textContent = titles[view][1];
+    if(view==="calendar") renderCalendar();
+    if(view==="jobs") renderAllJobs();
+    if(view==="settings") renderSettingsView();
+  }
+
+  function escapeHTML(s){
+    return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+
+  function renderAll(){
+    renderStats();
+    renderWeekStrip();
+    renderDashboardList();
+    renderCalendar();
+    renderAllJobs();
+    const d = new Date();
+    document.getElementById("topbarSub").textContent = document.getElementById("view-dashboard").classList.contains("active")
+      ? "วันนี้ " + d.getDate() + " " + MONTH_TH[d.getMonth()] + " " + (d.getFullYear()+543)
+      : document.getElementById("topbarSub").textContent;
+  }
+
+  // ---------- events ----------
+  document.querySelectorAll(".nav-item").forEach(el=>{
+    el.addEventListener("click", ()=> switchView(el.dataset.view));
+  });
+  document.getElementById("btnNewJob").addEventListener("click", ()=> openModal(null));
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  document.getElementById("btnCancel").addEventListener("click", closeModal);
+  document.getElementById("btnSave").addEventListener("click", submitForm);
+  document.getElementById("btnDelete").addEventListener("click", deleteCurrent);
+  document.getElementById("jobModalOverlay").addEventListener("click", (e)=>{
+    if(e.target.id==="jobModalOverlay") closeModal();
+  });
+  document.querySelectorAll(".type-opt").forEach(el=>{
+    el.addEventListener("click", ()=> selectType(el.dataset.type));
+  });
+  document.querySelectorAll(".tab").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+      el.classList.add("active");
+      dashRange = el.dataset.range;
+      renderDashboardList();
+    });
+  });
+  document.querySelectorAll(".stat-card").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const f = el.dataset.filter;
+      if(f==="overdue"){ switchView("jobs"); return; }
+      document.querySelectorAll(".tab").forEach(t=> t.classList.toggle("active", t.dataset.range===f));
+      dashRange = f;
+      renderDashboardList();
+    });
+  });
+  document.getElementById("calPrev").addEventListener("click", ()=>{
+    calCursor.setMonth(calCursor.getMonth()-1); renderCalendar();
+  });
+  document.getElementById("calNext").addEventListener("click", ()=>{
+    calCursor.setMonth(calCursor.getMonth()+1); renderCalendar();
+  });
+  document.getElementById("calToday").addEventListener("click", ()=>{
+    calCursor = new Date(); calCursor.setDate(1); renderCalendar();
+  });
+  document.getElementById("searchInput").addEventListener("input", renderAllJobs);
+  document.getElementById("filterType").addEventListener("change", renderAllJobs);
+  document.getElementById("filterStatus").addEventListener("change", renderAllJobs);
+  document.getElementById("btnSaveClientId").addEventListener("click", saveClientId);
+  document.getElementById("btnConnectGoogle").addEventListener("click", connectGoogle);
+  document.getElementById("btnSyncNow").addEventListener("click", syncNow);
+
+  // ---------- init ----------
+  load();
+  renderAll();
+  const now = new Date();
+  document.getElementById("topbarSub").textContent = "วันนี้ " + now.getDate() + " " + MONTH_TH[now.getMonth()] + " " + (now.getFullYear()+543);
+})();
+</script>
+</body>
+</html>
