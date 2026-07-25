@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SignFlow — ระบบนัดติดตั้งป้าย</title>
+<title>IDEA88 Flow - ระบบนัดติดตั้งป้ายร้านป้ายไอเดีย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -29,7 +32,8 @@
   *{box-sizing:border-box; margin:0; padding:0;}
   html,body{height:100%;}
   body{
-    font-family:'Leelawadee UI','Noto Sans Thai','Sarabun','Segoe UI',Tahoma,sans-serif;
+    font-family:'Noto Sans','Noto Sans Thai','Leelawadee UI','Sarabun','Segoe UI',Tahoma,sans-serif;
+    font-size:15.5px;
     background:var(--bg);
     color:var(--text);
     -webkit-font-smoothing:antialiased;
@@ -62,7 +66,7 @@
   .nav-item{
     display:flex; align-items:center; gap:12px;
     padding:11px 14px; border-radius:10px;
-    font-size:14.5px; cursor:pointer; color:#AEB9D4;
+    font-size:15.5px; cursor:pointer; color:#AEB9D4;
     transition:background .15s, color .15s;
     user-select:none;
   }
@@ -81,12 +85,12 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:18px 28px; background:var(--card); border-bottom:1px solid var(--border);
   }
-  .topbar h1{font-size:19px; font-weight:700;}
-  .topbar .sub{font-size:13px; color:var(--muted); margin-top:2px; font-weight:400;}
+  .topbar h1{font-size:20.5px; font-weight:700;}
+  .topbar .sub{font-size:14px; color:var(--muted); margin-top:2px; font-weight:400;}
   .btn{
     display:inline-flex; align-items:center; gap:8px;
     background:var(--accent); color:#fff; border:none;
-    padding:10px 16px; border-radius:10px; font-size:14px; font-weight:600;
+    padding:10px 16px; border-radius:10px; font-size:15px; font-weight:600;
     cursor:pointer; transition:background .15s, transform .1s;
     font-family:inherit;
   }
@@ -96,7 +100,7 @@
   .btn-ghost:hover{background:#F5F7FB;}
   .btn-danger{background:#FEEBEC; color:var(--red);}
   .btn-danger:hover{background:#FCD9DB;}
-  .btn-sm{padding:7px 12px; font-size:13px;}
+  .btn-sm{padding:7px 12px; font-size:14px;}
   .btn:disabled{opacity:.5; cursor:not-allowed;}
 
   .content{flex:1; overflow-y:auto; padding:22px 28px 40px;}
@@ -112,9 +116,9 @@
     cursor:pointer; transition:transform .12s;
   }
   .stat-card:hover{transform:translateY(-2px);}
-  .stat-card .label{font-size:12.5px; color:var(--muted); font-weight:600; margin-bottom:6px;}
-  .stat-card .num{font-size:26px; font-weight:700;}
-  .stat-card .num span{font-size:13px; color:var(--muted); font-weight:500; margin-left:4px;}
+  .stat-card .label{font-size:13.5px; color:var(--muted); font-weight:600; margin-bottom:6px;}
+  .stat-card .num{font-size:28px; font-weight:700;}
+  .stat-card .num span{font-size:14px; color:var(--muted); font-weight:500; margin-left:4px;}
   .stat-card.blue{border-color:var(--blue);} .stat-card.blue .num{color:var(--blue);}
   .stat-card.amber{border-color:var(--amber);} .stat-card.amber .num{color:var(--amber);}
   .stat-card.green{border-color:var(--green);} .stat-card.green .num{color:var(--green);}
@@ -129,8 +133,8 @@
     box-shadow:var(--shadow); cursor:pointer; border:2px solid transparent;
   }
   .week-day.today{border-color:var(--accent);}
-  .week-day .dow{font-size:11.5px; color:var(--muted); font-weight:600;}
-  .week-day .dom{font-size:17px; font-weight:700; margin:4px 0;}
+  .week-day .dow{font-size:12.5px; color:var(--muted); font-weight:600;}
+  .week-day .dom{font-size:18px; font-weight:700; margin:4px 0;}
   .week-day .dots{display:flex; justify-content:center; gap:3px; min-height:6px;}
   .week-day .dots span{width:6px;height:6px;border-radius:50%;}
 
@@ -140,9 +144,9 @@
     padding:18px 20px; margin-bottom:18px;
   }
   .panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-  .panel-head h2{font-size:15.5px; font-weight:700;}
+  .panel-head h2{font-size:16.5px; font-weight:700;}
   .tabs{display:flex; gap:6px; background:#F0F3FA; padding:4px; border-radius:10px;}
-  .tab{padding:7px 14px; border-radius:8px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer;}
+  .tab{padding:7px 14px; border-radius:8px; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer;}
   .tab.active{background:var(--card); color:var(--accent); box-shadow:0 1px 3px rgba(0,0,0,0.08);}
 
   /* job list rows */
@@ -157,12 +161,12 @@
     width:8px; height:38px; border-radius:6px; flex-shrink:0;
   }
   .job-main{flex:1; min-width:0;}
-  .job-title{font-size:14px; font-weight:700;}
-  .job-sub{font-size:12.5px; color:var(--muted); margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;}
-  .job-time{font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; text-align:right; min-width:56px;}
-  .job-date-tag{font-size:11.5px; color:var(--muted); font-weight:600;}
+  .job-title{font-size:15px; font-weight:700;}
+  .job-sub{font-size:13.5px; color:var(--muted); margin-top:2px; display:flex; gap:10px; flex-wrap:wrap;}
+  .job-time{font-size:14px; font-weight:700; color:var(--text); white-space:nowrap; text-align:right; min-width:56px;}
+  .job-date-tag{font-size:12.5px; color:var(--muted); font-weight:600;}
   .badge{
-    font-size:11px; font-weight:700; padding:4px 9px; border-radius:20px; white-space:nowrap;
+    font-size:12px; font-weight:700; padding:4px 9px; border-radius:20px; white-space:nowrap;
   }
   .badge.pending{background:#FFF3DC; color:#B8790A;}
   .badge.progress{background:#E3EBFD; color:var(--accent-dark);}
@@ -175,7 +179,7 @@
 
   /* ---------- CALENDAR ---------- */
   .cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;}
-  .cal-head .month-label{font-size:17px; font-weight:700;}
+  .cal-head .month-label{font-size:18px; font-weight:700;}
   .cal-nav{display:flex; gap:8px;}
   .icon-btn{
     width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--card);
@@ -183,7 +187,7 @@
   }
   .icon-btn:hover{background:#F5F7FB;}
   .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px;}
-  .cal-dow{text-align:center; font-size:12px; font-weight:700; color:var(--muted); padding-bottom:6px;}
+  .cal-dow{text-align:center; font-size:13px; font-weight:700; color:var(--muted); padding-bottom:6px;}
   .cal-cell{
     min-height:92px; background:var(--card); border-radius:10px; padding:8px;
     border:1px solid var(--border); cursor:pointer; display:flex; flex-direction:column; gap:4px;
@@ -191,7 +195,7 @@
   .cal-cell:hover{border-color:var(--accent);}
   .cal-cell.other-month{opacity:.35;}
   .cal-cell.today{border-color:var(--accent); background:#F3F7FF;}
-  .cal-daynum{font-size:12.5px; font-weight:700;}
+  .cal-daynum{font-size:13.5px; font-weight:700;}
   .cal-job-chip{
     font-size:10.5px; font-weight:600; padding:2px 6px; border-radius:5px; color:#fff;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
@@ -202,7 +206,7 @@
   .filters{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
   .filters input, .filters select{
     padding:9px 12px; border-radius:9px; border:1px solid var(--border);
-    font-size:13.5px; font-family:inherit; background:var(--card); color:var(--text);
+    font-size:14.5px; font-family:inherit; background:var(--card); color:var(--text);
   }
   .filters input[type=text]{flex:1; min-width:180px;}
 
@@ -220,13 +224,13 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:18px 22px; border-bottom:1px solid var(--border);
   }
-  .modal-head h3{font-size:16.5px; font-weight:700;}
+  .modal-head h3{font-size:17.5px; font-weight:700;}
   .modal-body{padding:20px 22px;}
   .form-row{margin-bottom:14px;}
-  .form-row label{display:block; font-size:12.5px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+  .form-row label{display:block; font-size:13.5px; font-weight:700; color:var(--muted); margin-bottom:6px;}
   .form-row input, .form-row select, .form-row textarea{
     width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:9px;
-    font-size:14px; font-family:inherit; color:var(--text); background:#FBFCFE;
+    font-size:15px; font-family:inherit; color:var(--text); background:#FBFCFE;
   }
   .form-row input:focus, .form-row select:focus, .form-row textarea:focus{
     outline:none; border-color:var(--accent); background:#fff;
@@ -235,14 +239,14 @@
   .type-picker{display:flex; gap:8px;}
   .type-opt{
     flex:1; text-align:center; padding:10px 6px; border-radius:9px; border:2px solid var(--border);
-    font-size:12.5px; font-weight:700; cursor:pointer; color:var(--muted);
+    font-size:13.5px; font-weight:700; cursor:pointer; color:var(--muted);
   }
   .type-opt.sel-install.on{border-color:var(--blue); background:#EAF1FE; color:var(--blue);}
   .type-opt.sel-survey.on{border-color:var(--amber); background:#FFF6E5; color:#B8790A;}
   .type-opt.sel-maintenance.on{border-color:var(--green); background:#E6FBF1; color:#0F8A57;}
   .type-opt.sel-other.on{border-color:#8892A6; background:#F0F2F6; color:#4B5568;}
   .badge-select{
-    font-size:11px; font-weight:700; padding:5px 22px 5px 10px; border-radius:20px; border:none;
+    font-size:12px; font-weight:700; padding:5px 22px 5px 10px; border-radius:20px; border:none;
     appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer; white-space:nowrap;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 9l6 6 6-6' stroke='%23888' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
     background-repeat:no-repeat; background-position:right 6px center; background-size:11px;
@@ -263,12 +267,20 @@
   .modal-foot .right{display:flex; gap:8px;}
   textarea{resize:vertical; min-height:60px;}
 
+  .qty-stepper{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .qty-stepper .icon-btn{width:30px; height:30px; font-size:16px; font-weight:700; color:var(--accent);}
+  .qty-value{font-size:15px; font-weight:700; min-width:26px; text-align:center;}
+  .material-row .job-title{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .low-stock-tag{
+    font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px; background:#FCE4E5; color:#C4292F;
+  }
+
   /* ---------- SETTINGS / CLOUD SYNC ---------- */
   .settings-card{max-width:640px;}
-  .settings-card h2{font-size:15.5px; font-weight:700; margin-bottom:4px;}
-  .settings-card .desc{font-size:13px; color:var(--muted); margin-bottom:18px; line-height:1.6;}
+  .settings-card h2{font-size:16.5px; font-weight:700; margin-bottom:4px;}
+  .settings-card .desc{font-size:14px; color:var(--muted); margin-bottom:18px; line-height:1.6;}
   .status-pill{
-    display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700;
+    display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:700;
     padding:6px 12px; border-radius:20px; margin-bottom:16px;
   }
   .status-pill .dot{width:8px;height:8px;border-radius:50%;}
@@ -315,15 +327,15 @@
     .brand, .sidebar-foot{display:none;}
     .nav{flex-direction:row; justify-content:space-around; gap:2px; flex:1;}
     .nav-item{
-      flex-direction:column; gap:3px; font-size:10px; font-weight:600;
+      flex-direction:column; gap:3px; font-size:11px; font-weight:600;
       padding:7px 2px; flex:1; text-align:center; border-radius:10px; white-space:nowrap;
     }
     .nav-item svg{width:19px; height:19px;}
 
     .main{padding-bottom:0;}
     .topbar{padding:14px 16px;}
-    .topbar h1{font-size:16.5px;}
-    .topbar .sub{font-size:11px;}
+    .topbar h1{font-size:17.5px;}
+    .topbar .sub{font-size:12px;}
     .content{padding:14px 14px calc(84px + env(safe-area-inset-bottom));}
 
     /* floating add button replaces the inline topbar button */
@@ -337,11 +349,11 @@
 
     .stats{grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;}
     .stat-card{padding:12px 14px;}
-    .stat-card .label{font-size:11.5px;}
-    .stat-card .num{font-size:20px;}
+    .stat-card .label{font-size:12.5px;}
+    .stat-card .num{font-size:21.5px;}
 
     .panel{padding:14px 16px;}
-    .panel-head h2{font-size:14.5px;}
+    .panel-head h2{font-size:15.5px;}
     .tabs{width:100%;}
     .tab{flex:1; text-align:center; padding:7px 6px;}
 
@@ -353,17 +365,17 @@
     .week-day{flex:0 0 54px;}
 
     .job-row{padding:11px 4px; gap:10px;}
-    .job-title{font-size:13.5px;}
-    .job-sub{font-size:11.5px; gap:6px;}
+    .job-title{font-size:14.5px;}
+    .job-sub{font-size:12.5px; gap:6px;}
     .job-date-tag{display:none;}
-    .job-time{min-width:44px; font-size:12px;}
-    .badge{font-size:10px; padding:3px 7px;}
+    .job-time{min-width:44px; font-size:13px;}
+    .badge{font-size:11px; padding:3px 7px;}
 
-    .cal-head .month-label{font-size:15px;}
+    .cal-head .month-label{font-size:16px;}
     .cal-grid{gap:5px;}
-    .cal-dow{font-size:10.5px;}
+    .cal-dow{font-size:11.5px;}
     .cal-cell{min-height:58px; padding:5px; border-radius:8px;}
-    .cal-daynum{font-size:11px;}
+    .cal-daynum{font-size:12px;}
     .cal-job-chip{font-size:9px; padding:1px 4px; border-radius:4px;}
     .cal-more{font-size:9px;}
 
@@ -373,7 +385,7 @@
     .modal{max-width:none; width:100%; max-height:94vh; border-radius:16px 16px 0 0; align-self:flex-end;}
     .overlay{align-items:flex-end; padding:0;}
     .form-grid{grid-template-columns:1fr;}
-    .type-opt{font-size:11.5px; padding:9px 4px;}
+    .type-opt{font-size:12.5px; padding:9px 4px;}
   }
 </style>
 </head>
@@ -384,7 +396,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="dot">🪧</div>
-      <div>SignFlow</div>
+      <div>IDEA88 Flow</div>
     </div>
     <nav class="nav">
       <div class="nav-item active" data-view="dashboard">
@@ -398,6 +410,10 @@
       <div class="nav-item" data-view="jobs">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
         งานทั้งหมด
+      </div>
+      <div class="nav-item" data-view="materials">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        คลังวัสดุ
       </div>
       <div class="nav-item" data-view="settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 4 9 9 9s9-4 9-9V7z"/><path d="M8.5 12.5l2.3 2.3 4.7-4.7"/></svg>
@@ -497,6 +513,21 @@
         </div>
       </div>
 
+      <!-- ================= MATERIALS INVENTORY ================= -->
+      <div class="view" id="view-materials">
+        <div class="stats" style="grid-template-columns:repeat(2,1fr);">
+          <div class="stat-card blue">
+            <div class="label">รายการวัสดุทั้งหมด</div>
+            <div class="num" id="matStatTotal">0 <span>รายการ</span></div>
+          </div>
+          <div class="stat-card red">
+            <div class="label">ใกล้หมด</div>
+            <div class="num" id="matStatLow">0 <span>รายการ</span></div>
+          </div>
+        </div>
+        <div id="materialsGroups"></div>
+      </div>
+
       <!-- ================= ONLINE DATA SETTINGS ================= -->
       <div class="view" id="view-settings">
         <div class="panel settings-card">
@@ -594,6 +625,62 @@
   </div>
 </div>
 
+<!-- ================= MATERIAL MODAL ================= -->
+<div class="overlay" id="materialModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="materialModalTitle">เพิ่มวัสดุ</h3>
+      <div class="icon-btn" id="materialModalClose">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>หมวดวัสดุ</label>
+        <select id="mCategory">
+          <option value="ไวนิลหลังขาว">ไวนิลหลังขาว</option>
+          <option value="ไวนิลหลังดำ">ไวนิลหลังดำ</option>
+          <option value="สติ๊กเกอร์ขาว">สติ๊กเกอร์ขาว</option>
+          <option value="สติ๊กเกอร์ใส">สติ๊กเกอร์ใส</option>
+          <option value="PP/PVC">PP/PVC</option>
+          <option value="หมึกเครื่องแดง">หมึกเครื่องแดง</option>
+          <option value="หมึก UV">หมึก UV</option>
+          <option value="อื่นๆ">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>ชื่อรายการ (เช่น หน้า 110 หรือ C)</label>
+        <input type="text" id="mName" placeholder="เช่น หน้า 110, C, M, Y, K">
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label>จำนวนคงเหลือ</label>
+          <input type="number" id="mQty" min="0" step="1" value="0">
+        </div>
+        <div class="form-row">
+          <label>หน่วยนับ</label>
+          <input type="text" id="mUnit" placeholder="ม้วน / ขวด / แผ่น">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>แจ้งเตือนเมื่อเหลือน้อยกว่า</label>
+        <input type="number" id="mMinQty" min="0" step="1" value="1">
+      </div>
+      <div class="form-row">
+        <label>หมายเหตุ</label>
+        <textarea id="mNotes" placeholder="เช่น ยี่ห้อ, ผู้จำหน่าย, ตำแหน่งจัดเก็บ"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <div>
+        <button class="btn btn-danger btn-sm" id="mBtnDelete" style="display:none;">ลบรายการนี้</button>
+      </div>
+      <div class="right">
+        <button class="btn btn-ghost btn-sm" id="mBtnCancel">ยกเลิก</button>
+        <button class="btn btn-sm" id="mBtnSave">บันทึก</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -618,14 +705,19 @@
   };
 
   let jobs = [];
+  let materials = [];
   let editingId = null;
+  let editingMaterialId = null;
   let selectedType = "install";
   let calCursor = new Date(); calCursor.setDate(1);
   let dashRange = "today";
+  let currentView = "dashboard";
+
+  const MATERIALS_STORAGE_KEY = "signflow_materials_v1";
 
   // ---------- cloud (Firebase) state ----------
   let cloudMode = false;      // true once connected & receiving live data
-  let fbApp = null, fbAuth = null, fbDb = null, fbUnsub = null;
+  let fbApp = null, fbAuth = null, fbDb = null, fbUnsub = null, fbUnsubMaterials = null;
   const fConfig = FIREBASE_CONFIG;
 
   function cryptoId(){ return "j" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
@@ -637,14 +729,40 @@
       jobs = raw ? JSON.parse(raw) : seedData();
       if(!raw) saveLocal();
     }catch(e){ jobs = seedData(); }
+    try{
+      const rawM = localStorage.getItem(MATERIALS_STORAGE_KEY);
+      materials = rawM ? JSON.parse(rawM) : seedMaterials();
+      if(!rawM) saveLocalMaterials();
+    }catch(e){ materials = seedMaterials(); }
   }
   function saveLocal(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs)); }
     catch(e){ console.error("บันทึกข้อมูลไม่สำเร็จ", e); }
   }
+  function saveLocalMaterials(){
+    try{ localStorage.setItem(MATERIALS_STORAGE_KEY, JSON.stringify(materials)); }
+    catch(e){ console.error("บันทึกข้อมูลวัสดุไม่สำเร็จ", e); }
+  }
+  function seedMaterials(){
+    const mk = (category, name, unit, qty, minQty) => ({
+      id: cryptoId(), category, name, unit, qty, minQty, notes:"", updatedAt: Date.now()
+    });
+    const items = [];
+    [110,130,250,260,320].forEach(w => items.push(mk("ไวนิลหลังขาว", "หน้า " + w, "ม้วน", 5, 2)));
+    [110,130,250,260,320].forEach(w => items.push(mk("ไวนิลหลังดำ", "หน้า " + w, "ม้วน", 5, 2)));
+    [107,127].forEach(w => items.push(mk("สติ๊กเกอร์ขาว", "หน้า " + w, "ม้วน", 3, 1)));
+    [90,127].forEach(w => items.push(mk("สติ๊กเกอร์ใส", "หน้า " + w, "ม้วน", 3, 1)));
+    items.push(mk("PP/PVC", "หน้า 90", "ม้วน", 3, 1));
+    ["C","M","Y","K"].forEach(c => items.push(mk("หมึกเครื่องแดง", c, "ขวด", 2, 1)));
+    ["C","M","Y","K"].forEach(c => items.push(mk("หมึก UV", c, "ขวด", 2, 1)));
+    return items;
+  }
   function seedData(){
     const t = new Date();
-    const fmt = (d)=> d.toISOString().slice(0,10);
+    const fmt = (d)=> {
+      const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,"0"), day = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${day}`;
+    };
     const mk = (offsetDays, o) => Object.assign({
       id: cryptoId(), time:"09:00", address:"", phone:"", lineId:"", mapLink:"", status:"pending", notes:"", updatedAt: Date.now()
     }, {date: fmt(new Date(t.getFullYear(),t.getMonth(),t.getDate()+offsetDays))}, o);
@@ -661,7 +779,12 @@
 
   // ---------- date helpers ----------
   function todayStr(){ return dateStr(new Date()); }
-  function dateStr(d){ return d.toISOString().slice(0,10); }
+  function dateStr(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    const day = String(d.getDate()).padStart(2,"0");
+    return `${y}-${m}-${day}`;
+  }
   function addDays(dateObj, n){ const d = new Date(dateObj); d.setDate(d.getDate()+n); return d; }
   function parseDate(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
   function fmtDateTH(s){
@@ -864,6 +987,154 @@
     attachRowClicks(el);
   }
 
+  // ---------- rendering: materials inventory ----------
+  const MATERIAL_CATEGORY_ORDER = ["ไวนิลหลังขาว","ไวนิลหลังดำ","สติ๊กเกอร์ขาว","สติ๊กเกอร์ใส","PP/PVC","หมึกเครื่องแดง","หมึก UV"];
+
+  function materialRowHTML(m){
+    const low = Number(m.qty) <= Number(m.minQty);
+    return `
+      <div class="job-row material-row" data-id="${m.id}">
+        <div class="job-main">
+          <div class="job-title">${escapeHTML(m.name)} ${low ? '<span class="low-stock-tag">ใกล้หมด</span>' : ""}</div>
+          <div class="job-sub">
+            <span>หน่วย: ${escapeHTML(m.unit || "-")}</span>
+            ${m.notes ? `<span>${escapeHTML(m.notes)}</span>` : ""}
+          </div>
+        </div>
+        <div class="qty-stepper">
+          <div class="icon-btn qty-minus" data-id="${m.id}">−</div>
+          <span class="qty-value">${m.qty}</span>
+          <div class="icon-btn qty-plus" data-id="${m.id}">+</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMaterials(){
+    const el = document.getElementById("materialsGroups");
+    const total = materials.length;
+    const low = materials.filter(m=> Number(m.qty) <= Number(m.minQty)).length;
+    document.getElementById("matStatTotal").innerHTML = total + " <span>รายการ</span>";
+    document.getElementById("matStatLow").innerHTML = low + " <span>รายการ</span>";
+
+    const categories = Array.from(new Set(materials.map(m=>m.category)));
+    categories.sort((a,b)=>{
+      const ia = MATERIAL_CATEGORY_ORDER.indexOf(a), ib = MATERIAL_CATEGORY_ORDER.indexOf(b);
+      if(ia===-1 && ib===-1) return a.localeCompare(b,"th");
+      if(ia===-1) return 1;
+      if(ib===-1) return -1;
+      return ia-ib;
+    });
+
+    if(categories.length===0){
+      el.innerHTML = `<div class="panel"><div class="empty-state"><div class="big">📦</div>ยังไม่มีรายการวัสดุ</div></div>`;
+      return;
+    }
+
+    el.innerHTML = categories.map(cat=>{
+      const items = materials.filter(m=>m.category===cat).sort((a,b)=> a.name.localeCompare(b.name,"th",{numeric:true}));
+      return `<div class="panel"><div class="panel-head"><h2>${escapeHTML(cat)}</h2></div>${items.map(materialRowHTML).join("")}</div>`;
+    }).join("");
+    attachMaterialClicks(el);
+  }
+
+  function attachMaterialClicks(container){
+    container.querySelectorAll(".material-row").forEach(row=>{
+      row.addEventListener("click", (e)=>{
+        if(e.target.closest(".qty-minus") || e.target.closest(".qty-plus")) return;
+        openMaterialModal(row.dataset.id);
+      });
+    });
+    container.querySelectorAll(".qty-minus").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{ e.stopPropagation(); adjustMaterialQty(btn.dataset.id, -1); });
+    });
+    container.querySelectorAll(".qty-plus").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{ e.stopPropagation(); adjustMaterialQty(btn.dataset.id, 1); });
+    });
+  }
+
+  function adjustMaterialQty(id, delta){
+    const idx = materials.findIndex(m=>m.id===id);
+    if(idx===-1) return;
+    const newQty = Math.max(0, Number(materials[idx].qty) + delta);
+    const m = Object.assign({}, materials[idx], {qty:newQty, updatedAt: Date.now()});
+    if(cloudMode){
+      fbDb.collection("materials").doc(id).set(m).catch(err=> fLog("อัปเดตวัสดุไม่สำเร็จ: " + err.message));
+    } else {
+      materials[idx] = m;
+      saveLocalMaterials();
+      renderMaterials();
+    }
+  }
+
+  function openMaterialModal(id){
+    editingMaterialId = id;
+    const modal = document.getElementById("materialModalOverlay");
+    const deleteBtn = document.getElementById("mBtnDelete");
+    if(id){
+      const m = materials.find(x=>x.id===id);
+      document.getElementById("materialModalTitle").textContent = "แก้ไขวัสดุ";
+      document.getElementById("mCategory").value = m.category;
+      document.getElementById("mName").value = m.name;
+      document.getElementById("mQty").value = m.qty;
+      document.getElementById("mUnit").value = m.unit;
+      document.getElementById("mMinQty").value = m.minQty;
+      document.getElementById("mNotes").value = m.notes || "";
+      deleteBtn.style.display = "inline-flex";
+    } else {
+      document.getElementById("materialModalTitle").textContent = "เพิ่มวัสดุ";
+      document.getElementById("mCategory").value = "ไวนิลหลังขาว";
+      document.getElementById("mName").value = "";
+      document.getElementById("mQty").value = 0;
+      document.getElementById("mUnit").value = "ม้วน";
+      document.getElementById("mMinQty").value = 1;
+      document.getElementById("mNotes").value = "";
+      deleteBtn.style.display = "none";
+    }
+    modal.classList.add("active");
+  }
+  function closeMaterialModal(){
+    document.getElementById("materialModalOverlay").classList.remove("active");
+    editingMaterialId = null;
+  }
+  function submitMaterialForm(){
+    const name = document.getElementById("mName").value.trim();
+    if(!name){ alert("กรุณากรอกชื่อรายการ"); return; }
+    const data = {
+      category: document.getElementById("mCategory").value,
+      name,
+      qty: Number(document.getElementById("mQty").value) || 0,
+      unit: document.getElementById("mUnit").value.trim(),
+      minQty: Number(document.getElementById("mMinQty").value) || 0,
+      notes: document.getElementById("mNotes").value.trim(),
+      updatedAt: Date.now()
+    };
+    const id = editingMaterialId || cryptoId();
+    const m = Object.assign({id}, data);
+    if(cloudMode){
+      fbDb.collection("materials").doc(id).set(m).catch(err=> fLog("บันทึกวัสดุไม่สำเร็จ: " + err.message));
+    } else {
+      const idx = materials.findIndex(x=>x.id===id);
+      if(idx>-1) materials[idx] = m; else materials.push(m);
+      saveLocalMaterials();
+      renderMaterials();
+    }
+    closeMaterialModal();
+  }
+  function deleteMaterialCurrent(){
+    if(!editingMaterialId) return;
+    if(!confirm("ต้องการลบรายการวัสดุนี้ใช่หรือไม่?")) return;
+    const id = editingMaterialId;
+    if(cloudMode){
+      fbDb.collection("materials").doc(id).delete().catch(err=> fLog("ลบวัสดุไม่สำเร็จ: " + err.message));
+    } else {
+      materials = materials.filter(x=>x.id!==id);
+      saveLocalMaterials();
+      renderMaterials();
+    }
+    closeMaterialModal();
+  }
+
   // ---------- modal ----------
   function openModal(id, presetDate){
     editingId = id;
@@ -975,14 +1246,24 @@
 
   // ---------- view switching ----------
   function switchView(view){
+    currentView = view;
     document.querySelectorAll(".nav-item").forEach(el=> el.classList.toggle("active", el.dataset.view===view));
     document.querySelectorAll(".view").forEach(el=> el.classList.remove("active"));
     document.getElementById("view-"+view).classList.add("active");
-    const titles = {dashboard:["หน้าแรก",""], calendar:["ตารางงาน","วางแผนและดูตารางงานรายเดือน"], jobs:["งานทั้งหมด","ค้นหาและจัดการงานทุกรายการ"], settings:["ข้อมูลออนไลน์","เชื่อมต่อให้ทุกเครื่องเห็นข้อมูลชุดเดียวกัน"]};
+    const titles = {
+      dashboard:["หน้าแรก",""],
+      calendar:["ตารางงาน","วางแผนและดูตารางงานรายเดือน"],
+      jobs:["งานทั้งหมด","ค้นหาและจัดการงานทุกรายการ"],
+      materials:["คลังวัสดุ","จัดการสต็อกวัสดุและวัตถุดิบ"],
+      settings:["ข้อมูลออนไลน์","เชื่อมต่อให้ทุกเครื่องเห็นข้อมูลชุดเดียวกัน"]
+    };
     document.getElementById("topbarTitle").textContent = titles[view][0];
     document.getElementById("topbarSub").textContent = titles[view][1] || todayLabel();
+    document.querySelector("#btnNewJob .btn-label").textContent = view==="materials" ? "เพิ่มวัสดุ" : "เพิ่มงานใหม่";
+    document.getElementById("btnNewJob").style.display = (view==="settings") ? "none" : "inline-flex";
     if(view==="calendar") renderCalendar();
     if(view==="jobs") renderAllJobs();
+    if(view==="materials") renderMaterials();
     if(view==="settings") renderSettingsView();
   }
 
@@ -997,6 +1278,10 @@
     renderDashboardList();
     if(document.getElementById("view-calendar").classList.contains("active")) renderCalendar();
     if(document.getElementById("view-jobs").classList.contains("active")) renderAllJobs();
+  }
+
+  function renderAllMaterials(){
+    if(document.getElementById("view-materials").classList.contains("active")) renderMaterials();
   }
 
   // ================= FIREBASE (ONLINE DATA) =================
@@ -1048,6 +1333,7 @@
         if(user){
           fLog("ยืนยันตัวตนสำเร็จ กำลังซิงค์ข้อมูล...");
           startListening();
+          startListeningMaterials();
         }
       });
     }catch(e){
@@ -1098,11 +1384,57 @@
     }
   }
 
+  function startListeningMaterials(){
+    if(fbUnsubMaterials) fbUnsubMaterials();
+    let firstSnapshot = true;
+    fbUnsubMaterials = fbDb.collection("materials").onSnapshot(function(snapshot){
+      if(firstSnapshot && snapshot.empty && materials.length>0){
+        firstSnapshot = false;
+        offerMaterialMigration();
+        return;
+      }
+      firstSnapshot = false;
+      materials = snapshot.docs.map(d=>d.data());
+      localStorage.setItem(MATERIALS_STORAGE_KEY, JSON.stringify(materials));
+      renderAllMaterials();
+      fLog("ซิงค์คลังวัสดุล่าสุดแล้ว (" + materials.length + " รายการ)");
+    }, function(err){
+      fLog("การเชื่อมต่อคลังวัสดุขาดหาย: " + err.message);
+    });
+  }
+
+  function offerMaterialMigration(){
+    const ok = confirm(`พบข้อมูลวัสดุ ${materials.length} รายการที่บันทึกไว้ในเครื่องนี้\nต้องการอัปโหลดขึ้นออนไลน์ไหม?`);
+    if(ok){
+      const batch = fbDb.batch();
+      materials.forEach(m=> batch.set(fbDb.collection("materials").doc(m.id), m));
+      batch.commit().then(()=>{
+        fLog("อัปโหลดคลังวัสดุขึ้นออนไลน์สำเร็จ (" + materials.length + " รายการ)");
+        startListeningMaterials();
+      }).catch(err=>{
+        fLog("อัปโหลดคลังวัสดุไม่สำเร็จ: " + err.message);
+        startListeningMaterials();
+      });
+    } else {
+      startListeningMaterials();
+    }
+  }
+
   // ---------- events ----------
   document.querySelectorAll(".nav-item").forEach(el=>{
     el.addEventListener("click", ()=> switchView(el.dataset.view));
   });
-  document.getElementById("btnNewJob").addEventListener("click", ()=> openModal(null));
+  document.getElementById("btnNewJob").addEventListener("click", ()=>{
+    if(currentView === "materials") openMaterialModal(null);
+    else openModal(null);
+  });
+  document.getElementById("materialModalClose").addEventListener("click", closeMaterialModal);
+  document.getElementById("mBtnCancel").addEventListener("click", closeMaterialModal);
+  document.getElementById("mBtnSave").addEventListener("click", submitMaterialForm);
+  document.getElementById("mBtnDelete").addEventListener("click", deleteMaterialCurrent);
+  document.getElementById("materialModalOverlay").addEventListener("click", (e)=>{
+    if(e.target.id==="materialModalOverlay") closeMaterialModal();
+  });
   document.getElementById("modalClose").addEventListener("click", closeModal);
   document.getElementById("btnCancel").addEventListener("click", closeModal);
   document.getElementById("btnSave").addEventListener("click", submitForm);
