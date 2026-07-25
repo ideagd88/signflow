@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SignFlow — ระบบนัดติดตั้งป้าย</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --navy:#152A4A;
@@ -95,6 +97,7 @@
   .btn-danger{background:#FEEBEC; color:var(--red);}
   .btn-danger:hover{background:#FCD9DB;}
   .btn-sm{padding:7px 12px; font-size:13px;}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
 
   .content{flex:1; overflow-y:auto; padding:22px 28px 40px;}
   .view{display:none;}
@@ -244,7 +247,7 @@
   .modal-foot .right{display:flex; gap:8px;}
   textarea{resize:vertical; min-height:60px;}
 
-  /* ---------- SETTINGS / GOOGLE SYNC ---------- */
+  /* ---------- SETTINGS / CLOUD SYNC ---------- */
   .settings-card{max-width:640px;}
   .settings-card h2{font-size:15.5px; font-weight:700; margin-bottom:4px;}
   .settings-card .desc{font-size:13px; color:var(--muted); margin-bottom:18px; line-height:1.6;}
@@ -257,6 +260,8 @@
   .status-pill.off .dot{background:#B4BBCC;}
   .status-pill.on{background:#E6FBF1; color:#0F8A57;}
   .status-pill.on .dot{background:var(--green);}
+  .status-pill.err{background:#FCE4E5; color:#C4292F;}
+  .status-pill.err .dot{background:var(--red);}
   .settings-steps{
     background:#F7F9FD; border:1px solid var(--border); border-radius:12px; padding:14px 16px;
     font-size:12.5px; color:var(--muted); line-height:1.9; margin-bottom:18px;
@@ -264,8 +269,13 @@
   .settings-steps b{color:var(--text);}
   .settings-steps a{color:var(--accent); text-decoration:none;}
   .settings-steps ol{padding-left:18px;}
-  .sync-log{font-size:12px; color:var(--muted); margin-top:10px; white-space:pre-line;}
+  .settings-steps code{background:#EDF1F9; padding:1px 5px; border-radius:4px; font-size:11.5px;}
+  .sync-log{font-size:12px; color:var(--muted); margin-top:10px; white-space:pre-line; max-height:140px; overflow-y:auto;}
   .btn-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;}
+  .rules-box{
+    background:#152A4A; color:#CFE0FF; font-family:'Courier New',monospace; font-size:11.5px;
+    padding:12px 14px; border-radius:10px; margin:10px 0; line-height:1.6; white-space:pre; overflow-x:auto;
+  }
 
   ::-webkit-scrollbar{width:8px; height:8px;}
   ::-webkit-scrollbar-thumb{background:#D7DEEC; border-radius:8px;}
@@ -300,8 +310,8 @@
         งานทั้งหมด
       </div>
       <div class="nav-item" data-view="settings">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg>
-        Google Calendar
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 4 9 9 9s9-4 9-9V7z"/><path d="M8.5 12.5l2.3 2.3 4.7-4.7"/></svg>
+        ข้อมูลออนไลน์
       </div>
     </nav>
     <div class="sidebar-foot" id="syncStatusFoot">ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์</div>
@@ -396,35 +406,45 @@
         </div>
       </div>
 
-      <!-- ================= GOOGLE CALENDAR SETTINGS ================= -->
+      <!-- ================= ONLINE DATA SETTINGS ================= -->
       <div class="view" id="view-settings">
         <div class="panel settings-card">
-          <h2>เชื่อมต่อ Google Calendar</h2>
-          <div class="desc">ซิงค์งานติดตั้งป้ายทั้งหมดเข้า Google Calendar ปฏิทินแยกชื่อ "SignFlow - งานติดตั้งป้าย" อัตโนมัติ ต้องมีอินเทอร์เน็ตตอนซิงค์</div>
+          <h2>บันทึกข้อมูลออนไลน์ (Firebase)</h2>
+          <div class="desc">เชื่อมต่อครั้งเดียว แล้วทุกเครื่อง/ทุกคนในร้านที่เปิดแอปนี้จะเห็นข้อมูลชุดเดียวกันแบบเรียลไทม์ ไม่ต้อง login แยกคน ถ้าออฟไลน์ยังใช้งานได้ตามปกติ แล้วจะซิงค์อัตโนมัติเมื่อเน็ตกลับมา</div>
 
-          <div class="status-pill off" id="gStatusPill"><span class="dot"></span><span id="gStatusText">ยังไม่ได้เชื่อมต่อ</span></div>
+          <div class="status-pill off" id="fStatusPill"><span class="dot"></span><span id="fStatusText">ยังไม่ได้เชื่อมต่อ — ใช้งานแบบบันทึกในเครื่องนี้</span></div>
 
-          <div class="settings-steps" id="gSetupSteps">
-            <b>ตั้งค่าครั้งแรก (ทำครั้งเดียว):</b>
+          <div class="settings-steps" id="fSetupSteps">
+            <b>ตั้งค่าครั้งแรก (ทำครั้งเดียว ~5 นาที ไม่มีขั้นตอน OAuth ที่ยุ่งยาก):</b>
             <ol>
-              <li>ต้อง host ไฟล์นี้บน URL จริง (https://) เช่น GitHub Pages — ใช้แบบเปิดไฟล์ตรงๆ (file://) เชื่อมต่อไม่ได้</li>
-              <li>ไปที่ <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a> สร้างโปรเจกต์ใหม่ แล้วเปิดใช้ "Google Calendar API"</li>
-              <li>ตั้งค่า OAuth consent screen (เลือก External) และเพิ่ม scope <code>calendar.events</code></li>
-              <li>สร้าง OAuth Client ID ประเภท "Web application" แล้วเพิ่ม URL ที่ host ไฟล์นี้ไว้ใน "Authorized JavaScript origins"</li>
-              <li>คัดลอก Client ID มาวางด้านล่าง แล้วกด "บันทึก Client ID"</li>
+              <li>ไปที่ <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">console.firebase.google.com</a> → กด "Add project" ตั้งชื่ออะไรก็ได้ → สร้างโปรเจกต์</li>
+              <li>เมนูซ้าย → <b>Build → Firestore Database</b> → Create database → เลือก location ใกล้ๆ (เช่น asia-southeast1) → เริ่มด้วยโหมดใดก็ได้ (จะตั้ง rule เองด้านล่าง)</li>
+              <li>เมนูซ้าย → <b>Build → Authentication</b> → Get started → แท็บ Sign-in method → เปิดใช้ <b>Anonymous</b> (กด Enable แล้ว Save) — ใช้เพื่อกันคนนอกเข้าถึงข้อมูล โดยไม่ต้องให้พนักงาน login เอง</li>
+              <li>ไปที่ Firestore → แท็บ <b>Rules</b> → แทนที่ด้วยข้อความนี้ แล้วกด Publish:
+                <div class="rules-box">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /jobs/{jobId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</div>
+              </li>
+              <li>เมนูซ้ายบน (ไอคอนเฟือง) → <b>Project settings</b> → เลื่อนลงหา "Your apps" → กดไอคอน <b>&lt;/&gt; (Web)</b> → ตั้งชื่อแอป → Register app</li>
+              <li>จะได้โค้ด <code>firebaseConfig = {...}</code> — คัดลอกทั้งก้อน (ตั้งแต่ <code>{</code> ถึง <code>}</code>) มาวางในช่องด้านล่าง</li>
             </ol>
           </div>
 
           <div class="form-row">
-            <label>Google OAuth Client ID</label>
-            <input type="text" id="gClientId" placeholder="xxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com">
+            <label>วาง Firebase Config (ทั้งก้อน {...})</label>
+            <textarea id="fConfigInput" style="min-height:110px; font-family:'Courier New',monospace; font-size:12.5px;" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", ...}'></textarea>
           </div>
           <div class="btn-row">
-            <button class="btn btn-ghost btn-sm" id="btnSaveClientId">บันทึก Client ID</button>
-            <button class="btn btn-sm" id="btnConnectGoogle" disabled>เชื่อมต่อ Google Calendar</button>
-            <button class="btn btn-ghost btn-sm" id="btnSyncNow" style="display:none;">ซิงค์ตอนนี้</button>
+            <button class="btn btn-ghost btn-sm" id="btnSaveConfig">บันทึก Config</button>
+            <button class="btn btn-sm" id="btnConnectCloud" disabled>เชื่อมต่อข้อมูลออนไลน์</button>
+            <button class="btn btn-ghost btn-sm" id="btnDisconnectCloud" style="display:none;">ยกเลิกการเชื่อมต่อ</button>
           </div>
-          <div class="sync-log" id="gSyncLog"></div>
+          <div class="sync-log" id="fSyncLog"></div>
         </div>
       </div>
 
@@ -503,8 +523,8 @@
   "use strict";
 
   const STORAGE_KEY = "signflow_jobs_v1";
+  const F_CONFIG_KEY = "signflow_firebase_config";
   const TYPE_LABEL = {install:"ติดตั้งป้าย", survey:"สำรวจหน้างาน", plan:"วางแผนงาน"};
-  const TYPE_COLOR  = {install:"var(--blue)", survey:"var(--amber)", plan:"var(--green)"};
   const TYPE_HEX    = {install:"#3B6FE0", survey:"#F5A524", plan:"#16B672"};
   const STATUS_LABEL = {pending:"รอดำเนินการ", progress:"กำลังดำเนินการ", done:"เสร็จแล้ว", cancel:"ยกเลิก"};
   const DOW_TH = ["อา","จ","อ","พ","พฤ","ศ","ส"];
@@ -516,25 +536,23 @@
   let calCursor = new Date(); calCursor.setDate(1);
   let dashRange = "today";
 
-  // ---------- Google Calendar sync state ----------
-  const G_CLIENT_ID_KEY = "signflow_g_client_id";
-  const G_CALENDAR_ID_KEY = "signflow_g_calendar_id";
-  const G_LASTSYNC_KEY = "signflow_g_lastsync";
-  let gClientId = localStorage.getItem(G_CLIENT_ID_KEY) || "";
-  let gCalendarId = localStorage.getItem(G_CALENDAR_ID_KEY) || "";
-  let gAccessToken = null;
-  let gTokenClient = null;
-  let gConnected = false;
+  // ---------- cloud (Firebase) state ----------
+  let cloudMode = false;      // true once connected & receiving live data
+  let fbApp = null, fbAuth = null, fbDb = null, fbUnsub = null;
+  let fConfig = null;
+  try{ fConfig = JSON.parse(localStorage.getItem(F_CONFIG_KEY) || "null"); }catch(e){ fConfig = null; }
 
-  // ---------- persistence ----------
-  function load(){
+  function cryptoId(){ return "j" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+  // ---------- local persistence (fallback / cache) ----------
+  function loadLocal(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
       jobs = raw ? JSON.parse(raw) : seedData();
-      if(!raw) save();
+      if(!raw) saveLocal();
     }catch(e){ jobs = seedData(); }
   }
-  function save(){
+  function saveLocal(){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs)); }
     catch(e){ console.error("บันทึกข้อมูลไม่สำเร็จ", e); }
   }
@@ -542,8 +560,7 @@
     const t = new Date();
     const fmt = (d)=> d.toISOString().slice(0,10);
     const mk = (offsetDays, o) => Object.assign({
-      id: cryptoId(), time:"09:00", address:"", phone:"", status:"pending", notes:"",
-      googleEventId:null, updatedAt: Date.now()
+      id: cryptoId(), time:"09:00", address:"", phone:"", status:"pending", notes:"", updatedAt: Date.now()
     }, {date: fmt(new Date(t.getFullYear(),t.getMonth(),t.getDate()+offsetDays))}, o);
     return [
       mk(0, {title:"ร้านกาแฟดอยคำ - ป้ายหน้าร้าน", type:"install", time:"09:30", address:"ถ.สายเอเซีย มหาสารคาม", phone:"081-234-5678", status:"progress", notes:"ป้ายไฟ LED ขนาด 3x1.5 ม."}),
@@ -554,7 +571,6 @@
       mk(-1, {title:"ร้านนวดแผนไทยสุขใจ", type:"install", time:"11:00", address:"", phone:"080-999-1111", status:"pending", notes:"ค้างจากสัปดาห์ก่อน"}),
     ];
   }
-  function cryptoId(){ return "j" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 
   // ---------- date helpers ----------
   function todayStr(){ return dateStr(new Date()); }
@@ -566,6 +582,9 @@
     return d.getDate() + " " + MONTH_TH[d.getMonth()] + " " + (d.getFullYear()+543);
   }
   function isSameDay(a,b){ return dateStr(a)===dateStr(b); }
+  function escapeHTML(s){
+    return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
 
   // ---------- rendering: dashboard ----------
   function jobsForRange(range){
@@ -614,7 +633,6 @@
   }
 
   function jobRowHTML(j){
-    const badgeClass = j.status;
     return `
       <div class="job-row" data-id="${j.id}">
         <div class="job-type-tag" style="background:${TYPE_HEX[j.type]}"></div>
@@ -628,7 +646,7 @@
         </div>
         <div class="job-date-tag">${fmtDateTH(j.date)}</div>
         <div class="job-time">${j.time || "-"}</div>
-        <div class="badge ${badgeClass}">${STATUS_LABEL[j.status]}</div>
+        <div class="badge ${j.status}">${STATUS_LABEL[j.status]}</div>
       </div>
     `;
   }
@@ -764,6 +782,7 @@
       el.classList.toggle("on", el.dataset.type===t);
     });
   }
+
   function submitForm(){
     const title = document.getElementById("fTitle").value.trim();
     if(!title){ alert("กรุณากรอกชื่องาน / ลูกค้า"); return; }
@@ -777,268 +796,37 @@
       phone: document.getElementById("fPhone").value.trim(),
       status: document.getElementById("fStatus").value,
       notes: document.getElementById("fNotes").value.trim(),
+      updatedAt: Date.now()
     };
-    data.updatedAt = Date.now();
-    let savedJob;
-    if(editingId){
-      const idx = jobs.findIndex(x=>x.id===editingId);
-      const old = jobs[idx];
-      savedJob = Object.assign({}, old, data, {id:editingId});
-      jobs[idx] = savedJob;
+    const id = editingId || cryptoId();
+    const job = Object.assign({id}, data);
+
+    if(cloudMode){
+      fbDb.collection("jobs").doc(id).set(job)
+        .catch(err=> fLog("บันทึกไม่สำเร็จ: " + err.message));
+      // onSnapshot listener will update UI once write is confirmed (also shows instantly from local cache)
     } else {
-      savedJob = Object.assign({id:cryptoId(), googleEventId:null}, data);
-      jobs.push(savedJob);
+      const idx = jobs.findIndex(x=>x.id===id);
+      if(idx>-1) jobs[idx] = job; else jobs.push(job);
+      saveLocal();
+      renderAll();
     }
-    save();
     closeModal();
-    renderAll();
-    if(gConnected) pushSingleJob(savedJob).catch(e=>console.error(e));
   }
+
   function deleteCurrent(){
     if(!editingId) return;
     if(!confirm("ต้องการลบงานนี้ใช่หรือไม่?")) return;
-    const job = jobs.find(x=>x.id===editingId);
-    jobs = jobs.filter(x=>x.id!==editingId);
-    save();
+    const id = editingId;
+    if(cloudMode){
+      fbDb.collection("jobs").doc(id).delete()
+        .catch(err=> fLog("ลบไม่สำเร็จ: " + err.message));
+    } else {
+      jobs = jobs.filter(x=>x.id!==id);
+      saveLocal();
+      renderAll();
+    }
     closeModal();
-    renderAll();
-    if(gConnected && job && job.googleEventId){
-      deleteGoogleEvent(job.googleEventId).catch(e=>console.error(e));
-    }
-  }
-
-  // ================= GOOGLE CALENDAR SYNC =================
-  const G_CAL_NAME = "SignFlow - งานติดตั้งป้าย";
-  const G_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
-
-  function gLog(msg){
-    const el = document.getElementById("gSyncLog");
-    const time = new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
-    el.textContent = `[${time}] ${msg}\n` + el.textContent;
-  }
-
-  function renderSettingsView(){
-    document.getElementById("gClientId").value = gClientId;
-    document.getElementById("btnConnectGoogle").disabled = !gClientId;
-    updateGoogleStatusUI();
-  }
-
-  function updateGoogleStatusUI(){
-    const pill = document.getElementById("gStatusPill");
-    const text = document.getElementById("gStatusText");
-    const syncBtn = document.getElementById("btnSyncNow");
-    const connectBtn = document.getElementById("btnConnectGoogle");
-    if(gConnected){
-      pill.className = "status-pill on";
-      const last = localStorage.getItem(G_LASTSYNC_KEY);
-      text.textContent = "เชื่อมต่อแล้ว" + (last ? " • ซิงค์ล่าสุด " + new Date(Number(last)).toLocaleString("th-TH") : "");
-      syncBtn.style.display = "inline-flex";
-      connectBtn.textContent = "เชื่อมต่อใหม่ (ต่ออายุ token)";
-    } else {
-      pill.className = "status-pill off";
-      text.textContent = "ยังไม่ได้เชื่อมต่อ";
-      syncBtn.style.display = "none";
-      connectBtn.textContent = "เชื่อมต่อ Google Calendar";
-    }
-    document.getElementById("syncStatusFoot").innerHTML = gConnected
-      ? "เชื่อมต่อ Google Calendar แล้ว<br>กด \"ซิงค์ตอนนี้\" เพื่ออัปเดต"
-      : "ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์";
-  }
-
-  function ensureGisReady(cb, tries){
-    tries = tries || 0;
-    if(window.google && google.accounts && google.accounts.oauth2){ cb(); return; }
-    if(tries > 40){ gLog("โหลด Google Sign-In ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต / ต้อง host เป็น https"); return; }
-    setTimeout(()=> ensureGisReady(cb, tries+1), 250);
-  }
-
-  function saveClientId(){
-    const val = document.getElementById("gClientId").value.trim();
-    if(!val){ alert("กรุณาวาง Client ID"); return; }
-    gClientId = val;
-    localStorage.setItem(G_CLIENT_ID_KEY, gClientId);
-    document.getElementById("btnConnectGoogle").disabled = false;
-    gLog("บันทึก Client ID แล้ว กด \"เชื่อมต่อ Google Calendar\" ได้เลย");
-  }
-
-  function connectGoogle(){
-    if(!gClientId){ alert("ใส่ Client ID ก่อน"); return; }
-    ensureGisReady(function(){
-      try{
-        gTokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: gClientId,
-          scope: G_SCOPE,
-          callback: onGoogleToken
-        });
-        gTokenClient.requestAccessToken({prompt: gAccessToken ? "" : "consent"});
-      }catch(e){
-        console.error(e);
-        gLog("เชื่อมต่อไม่สำเร็จ: " + e.message + " (ตรวจสอบว่า origin ปัจจุบันถูกเพิ่มใน Authorized JavaScript origins แล้ว)");
-      }
-    });
-  }
-
-  async function onGoogleToken(resp){
-    if(resp.error){
-      gLog("การยืนยันตัวตนล้มเหลว: " + resp.error);
-      return;
-    }
-    gAccessToken = resp.access_token;
-    gConnected = true;
-    updateGoogleStatusUI();
-    gLog("เชื่อมต่อสำเร็จ กำลังเตรียมปฏิทิน SignFlow...");
-    try{
-      await ensureCalendar();
-      gLog('พร้อมใช้งาน — ปฏิทิน "' + G_CAL_NAME + '" พร้อมแล้ว');
-      await syncNow();
-    }catch(e){
-      console.error(e);
-      gLog("เกิดข้อผิดพลาด: " + e.message);
-    }
-  }
-
-  async function gApi(path, options){
-    options = options || {};
-    options.headers = Object.assign({}, options.headers, {
-      "Authorization": "Bearer " + gAccessToken,
-      "Content-Type": "application/json"
-    });
-    const res = await fetch("https://www.googleapis.com/calendar/v3" + path, options);
-    if(res.status === 401){
-      gConnected = false;
-      updateGoogleStatusUI();
-      throw new Error("Token หมดอายุ กรุณากดเชื่อมต่อใหม่อีกครั้ง");
-    }
-    if(res.status === 204) return null;
-    const data = await res.json().catch(()=>null);
-    if(!res.ok){ throw new Error((data && data.error && data.error.message) || res.statusText); }
-    return data;
-  }
-
-  async function ensureCalendar(){
-    if(gCalendarId){
-      try{ await gApi("/calendars/" + encodeURIComponent(gCalendarId)); return; }
-      catch(e){ /* stored calendar no longer valid, fall through to recreate */ }
-    }
-    const list = await gApi("/users/me/calendarList?maxResults=250");
-    const found = (list.items||[]).find(c=>c.summary===G_CAL_NAME);
-    if(found){
-      gCalendarId = found.id;
-    } else {
-      const created = await gApi("/calendars", {method:"POST", body: JSON.stringify({summary: G_CAL_NAME, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone})});
-      gCalendarId = created.id;
-    }
-    localStorage.setItem(G_CALENDAR_ID_KEY, gCalendarId);
-  }
-
-  function addMinutes(timeStr, mins){
-    const [h,m] = timeStr.split(":").map(Number);
-    let total = h*60+m+mins;
-    let dayOffset = 0;
-    while(total >= 24*60){ total -= 24*60; dayOffset++; }
-    const hh = String(Math.floor(total/60)).padStart(2,"0");
-    const mm = String(total%60).padStart(2,"0");
-    return {time: `${hh}:${mm}`, dayOffset};
-  }
-
-  function jobToEventBody(job){
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const end = addMinutes(job.time || "09:00", 60);
-    const endDate = end.dayOffset ? dateStr(addDays(parseDate(job.date), end.dayOffset)) : job.date;
-    const descLines = [
-      "ประเภทงาน: " + TYPE_LABEL[job.type],
-      "สถานะ: " + STATUS_LABEL[job.status],
-      job.phone ? "เบอร์โทร: " + job.phone : null,
-      job.notes ? "หมายเหตุ: " + job.notes : null
-    ].filter(Boolean);
-    return {
-      summary: job.title,
-      location: job.address || "",
-      description: descLines.join("\n"),
-      start: {dateTime: `${job.date}T${job.time || "09:00"}:00`, timeZone: tz},
-      end: {dateTime: `${endDate}T${end.time}:00`, timeZone: tz},
-      extendedProperties: {private: {signflowId: job.id}}
-    };
-  }
-
-  async function pushSingleJob(job){
-    if(!gConnected) return;
-    const body = jobToEventBody(job);
-    if(job.googleEventId){
-      await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events/${job.googleEventId}`, {method:"PATCH", body: JSON.stringify(body)});
-    } else {
-      const created = await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events`, {method:"POST", body: JSON.stringify(body)});
-      job.googleEventId = created.id;
-      save();
-    }
-  }
-
-  async function deleteGoogleEvent(eventId){
-    if(!gConnected) return;
-    try{ await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events/${eventId}`, {method:"DELETE"}); }
-    catch(e){ console.error(e); }
-  }
-
-  async function pushAllJobs(){
-    for(const job of jobs){
-      try{ await pushSingleJob(job); }
-      catch(e){ console.error("push failed for", job.title, e); }
-    }
-  }
-
-  async function pullEvents(){
-    const data = await gApi(`/calendars/${encodeURIComponent(gCalendarId)}/events?maxResults=2500&singleEvents=true&showDeleted=false`);
-    let created = 0, updated = 0;
-    (data.items||[]).forEach(ev=>{
-      const localId = ev.extendedProperties && ev.extendedProperties.private && ev.extendedProperties.private.signflowId;
-      const evUpdatedAt = new Date(ev.updated).getTime();
-      if(localId){
-        const idx = jobs.findIndex(j=>j.id===localId);
-        if(idx>-1){
-          if(evUpdatedAt > (jobs[idx].updatedAt||0)){
-            jobs[idx] = Object.assign({}, jobs[idx], eventToJobFields(ev), {updatedAt: evUpdatedAt});
-            updated++;
-          }
-        }
-      } else {
-        // event created directly in Google Calendar - import as new job
-        const newJob = Object.assign({id:cryptoId(), googleEventId: ev.id, updatedAt: evUpdatedAt}, eventToJobFields(ev));
-        jobs.push(newJob);
-        created++;
-      }
-    });
-    if(created || updated){ save(); renderAll(); }
-    return {created, updated};
-  }
-
-  function eventToJobFields(ev){
-    const startStr = (ev.start && (ev.start.dateTime || ev.start.date)) || todayStr();
-    const date = startStr.slice(0,10);
-    const time = (ev.start && ev.start.dateTime) ? startStr.slice(11,16) : "09:00";
-    return {
-      title: ev.summary || "(ไม่มีชื่องาน)",
-      type: "install",
-      date, time,
-      address: ev.location || "",
-      phone: "",
-      status: "pending",
-      notes: ev.description || ""
-    };
-  }
-
-  async function syncNow(){
-    if(!gConnected){ alert("กรุณาเชื่อมต่อ Google Calendar ก่อน"); return; }
-    gLog("กำลังซิงค์...");
-    try{
-      await pushAllJobs();
-      const result = await pullEvents();
-      localStorage.setItem(G_LASTSYNC_KEY, String(Date.now()));
-      updateGoogleStatusUI();
-      gLog(`ซิงค์เสร็จสิ้น — ส่งออก ${jobs.length} งาน, นำเข้าใหม่ ${result.created} งาน, อัปเดต ${result.updated} งาน`);
-    }catch(e){
-      console.error(e);
-      gLog("ซิงค์ไม่สำเร็จ: " + e.message);
-    }
   }
 
   // ---------- view switching ----------
@@ -1046,28 +834,159 @@
     document.querySelectorAll(".nav-item").forEach(el=> el.classList.toggle("active", el.dataset.view===view));
     document.querySelectorAll(".view").forEach(el=> el.classList.remove("active"));
     document.getElementById("view-"+view).classList.add("active");
-    const titles = {dashboard:["หน้าแรก",""], calendar:["ตารางงาน","วางแผนและดูตารางงานรายเดือน"], jobs:["งานทั้งหมด","ค้นหาและจัดการงานทุกรายการ"], settings:["Google Calendar","เชื่อมต่อและซิงค์งานกับ Google Calendar"]};
+    const titles = {dashboard:["หน้าแรก",""], calendar:["ตารางงาน","วางแผนและดูตารางงานรายเดือน"], jobs:["งานทั้งหมด","ค้นหาและจัดการงานทุกรายการ"], settings:["ข้อมูลออนไลน์","เชื่อมต่อให้ทุกเครื่องเห็นข้อมูลชุดเดียวกัน"]};
     document.getElementById("topbarTitle").textContent = titles[view][0];
-    document.getElementById("topbarSub").textContent = titles[view][1];
+    document.getElementById("topbarSub").textContent = titles[view][1] || todayLabel();
     if(view==="calendar") renderCalendar();
     if(view==="jobs") renderAllJobs();
     if(view==="settings") renderSettingsView();
   }
 
-  function escapeHTML(s){
-    return (s||"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function todayLabel(){
+    const d = new Date();
+    return "วันนี้ " + d.getDate() + " " + MONTH_TH[d.getMonth()] + " " + (d.getFullYear()+543);
   }
 
   function renderAll(){
     renderStats();
     renderWeekStrip();
     renderDashboardList();
-    renderCalendar();
-    renderAllJobs();
-    const d = new Date();
-    document.getElementById("topbarSub").textContent = document.getElementById("view-dashboard").classList.contains("active")
-      ? "วันนี้ " + d.getDate() + " " + MONTH_TH[d.getMonth()] + " " + (d.getFullYear()+543)
-      : document.getElementById("topbarSub").textContent;
+    if(document.getElementById("view-calendar").classList.contains("active")) renderCalendar();
+    if(document.getElementById("view-jobs").classList.contains("active")) renderAllJobs();
+  }
+
+  // ================= FIREBASE (ONLINE DATA) =================
+  function fLog(msg){
+    const el = document.getElementById("fSyncLog");
+    if(!el) return;
+    const time = new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
+    el.textContent = `[${time}] ${msg}\n` + el.textContent;
+  }
+
+  function renderSettingsView(){
+    document.getElementById("fConfigInput").value = fConfig ? JSON.stringify(fConfig, null, 2) : "";
+    document.getElementById("btnConnectCloud").disabled = !fConfig;
+    updateCloudStatusUI();
+  }
+
+  function updateCloudStatusUI(status){
+    const pill = document.getElementById("fStatusPill");
+    const text = document.getElementById("fStatusText");
+    const connectBtn = document.getElementById("btnConnectCloud");
+    const disconnectBtn = document.getElementById("btnDisconnectCloud");
+    if(cloudMode){
+      pill.className = "status-pill on";
+      text.textContent = "เชื่อมต่อแล้ว — ข้อมูลซิงค์แบบเรียลไทม์";
+      connectBtn.textContent = "เชื่อมต่อใหม่";
+      disconnectBtn.style.display = "inline-flex";
+      document.getElementById("syncStatusFoot").innerHTML = "🟢 เชื่อมต่อออนไลน์แล้ว<br>ข้อมูลซิงค์กับทุกเครื่อง";
+    } else if(status==="error"){
+      pill.className = "status-pill err";
+      disconnectBtn.style.display = "none";
+      document.getElementById("syncStatusFoot").innerHTML = "ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์";
+    } else {
+      pill.className = "status-pill off";
+      text.textContent = "ยังไม่ได้เชื่อมต่อ — ใช้งานแบบบันทึกในเครื่องนี้";
+      connectBtn.textContent = "เชื่อมต่อข้อมูลออนไลน์";
+      disconnectBtn.style.display = "none";
+      document.getElementById("syncStatusFoot").innerHTML = "ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์";
+    }
+  }
+
+  function saveConfig(){
+    const raw = document.getElementById("fConfigInput").value.trim();
+    if(!raw){ alert("กรุณาวาง Firebase config"); return; }
+    try{
+      // allow pasting either raw JSON or "const firebaseConfig = {...};"
+      const jsonPart = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}")+1);
+      const parsed = Function('"use strict"; return (' + jsonPart + ')')();
+      if(!parsed.apiKey || !parsed.projectId) throw new Error("ไม่พบ apiKey หรือ projectId ใน config");
+      fConfig = parsed;
+      localStorage.setItem(F_CONFIG_KEY, JSON.stringify(fConfig));
+      document.getElementById("btnConnectCloud").disabled = false;
+      fLog("บันทึก config แล้ว กด \"เชื่อมต่อข้อมูลออนไลน์\" ได้เลย");
+    }catch(e){
+      alert("อ่าน config ไม่สำเร็จ: " + e.message + "\nตรวจสอบว่าคัดลอกมาทั้งก้อน { ... }");
+    }
+  }
+
+  function connectCloud(){
+    if(!fConfig){ alert("ใส่ config ก่อน"); return; }
+    fLog("กำลังเชื่อมต่อ...");
+    try{
+      if(!fbApp){
+        fbApp = firebase.initializeApp(fConfig);
+        fbAuth = firebase.auth();
+        fbDb = firebase.firestore();
+        fbDb.enablePersistence({synchronizeTabs:true}).catch(err=>{
+          console.warn("offline persistence not enabled:", err.message);
+        });
+      }
+      fbAuth.signInAnonymously().catch(err=>{
+        fLog("ยืนยันตัวตนไม่สำเร็จ: " + err.message + " (ตรวจสอบว่าเปิด Anonymous sign-in ใน Firebase Authentication แล้ว)");
+        updateCloudStatusUI("error");
+      });
+      fbAuth.onAuthStateChanged(function(user){
+        if(user){
+          fLog("ยืนยันตัวตนสำเร็จ กำลังซิงค์ข้อมูล...");
+          startListening();
+        }
+      });
+    }catch(e){
+      fLog("เชื่อมต่อไม่สำเร็จ: " + e.message);
+      updateCloudStatusUI("error");
+    }
+  }
+
+  function startListening(){
+    if(fbUnsub) fbUnsub();
+    let firstSnapshot = true;
+    fbUnsub = fbDb.collection("jobs").onSnapshot(function(snapshot){
+      if(firstSnapshot && snapshot.empty && jobs.length>0){
+        firstSnapshot = false;
+        offerMigration();
+        return;
+      }
+      firstSnapshot = false;
+      const cloudJobs = snapshot.docs.map(d=>d.data());
+      jobs = cloudJobs;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs)); // mirror as backup cache
+      cloudMode = true;
+      updateCloudStatusUI();
+      renderAll();
+      fLog("ซิงค์ข้อมูลล่าสุดแล้ว (" + jobs.length + " งาน)");
+    }, function(err){
+      fLog("การเชื่อมต่อขาดหาย: " + err.message);
+      cloudMode = false;
+      updateCloudStatusUI("error");
+    });
+  }
+
+  function offerMigration(){
+    const ok = confirm(`พบข้อมูล ${jobs.length} งานที่บันทึกไว้ในเครื่องนี้\nต้องการอัปโหลดขึ้นออนไลน์ไหม?`);
+    cloudMode = true;
+    if(ok){
+      const batch = fbDb.batch();
+      jobs.forEach(j=> batch.set(fbDb.collection("jobs").doc(j.id), j));
+      batch.commit().then(()=>{
+        fLog("อัปโหลดข้อมูลเดิมขึ้นออนไลน์สำเร็จ (" + jobs.length + " งาน)");
+        startListening();
+      }).catch(err=>{
+        fLog("อัปโหลดไม่สำเร็จ: " + err.message);
+        startListening();
+      });
+    } else {
+      startListening();
+    }
+  }
+
+  function disconnectCloud(){
+    if(fbUnsub){ fbUnsub(); fbUnsub = null; }
+    cloudMode = false;
+    loadLocal();
+    updateCloudStatusUI();
+    renderAll();
+    fLog("ยกเลิกการเชื่อมต่อแล้ว กลับไปใช้ข้อมูลในเครื่องนี้");
   }
 
   // ---------- events ----------
@@ -1114,15 +1033,18 @@
   document.getElementById("searchInput").addEventListener("input", renderAllJobs);
   document.getElementById("filterType").addEventListener("change", renderAllJobs);
   document.getElementById("filterStatus").addEventListener("change", renderAllJobs);
-  document.getElementById("btnSaveClientId").addEventListener("click", saveClientId);
-  document.getElementById("btnConnectGoogle").addEventListener("click", connectGoogle);
-  document.getElementById("btnSyncNow").addEventListener("click", syncNow);
+  document.getElementById("btnSaveConfig").addEventListener("click", saveConfig);
+  document.getElementById("btnConnectCloud").addEventListener("click", connectCloud);
+  document.getElementById("btnDisconnectCloud").addEventListener("click", disconnectCloud);
 
   // ---------- init ----------
-  load();
+  loadLocal();
   renderAll();
-  const now = new Date();
-  document.getElementById("topbarSub").textContent = "วันนี้ " + now.getDate() + " " + MONTH_TH[now.getMonth()] + " " + (now.getFullYear()+543);
+  document.getElementById("topbarSub").textContent = todayLabel();
+  if(fConfig){
+    // auto-reconnect if config was saved from a previous session
+    connectCloud();
+  }
 })();
 </script>
 </body>
