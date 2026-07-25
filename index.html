@@ -239,7 +239,23 @@
   }
   .type-opt.sel-install.on{border-color:var(--blue); background:#EAF1FE; color:var(--blue);}
   .type-opt.sel-survey.on{border-color:var(--amber); background:#FFF6E5; color:#B8790A;}
-  .type-opt.sel-plan.on{border-color:var(--green); background:#E6FBF1; color:#0F8A57;}
+  .type-opt.sel-maintenance.on{border-color:var(--green); background:#E6FBF1; color:#0F8A57;}
+  .type-opt.sel-other.on{border-color:#8892A6; background:#F0F2F6; color:#4B5568;}
+  .badge-select{
+    font-size:11px; font-weight:700; padding:5px 22px 5px 10px; border-radius:20px; border:none;
+    appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer; white-space:nowrap;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M6 9l6 6 6-6' stroke='%23888' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat; background-position:right 6px center; background-size:11px;
+    font-family:inherit;
+  }
+  .badge-select.status-pending{background-color:#FFF3DC; color:#B8790A;}
+  .badge-select.status-progress{background-color:#E3EBFD; color:var(--accent-dark);}
+  .badge-select.status-done{background-color:#DEFBEF; color:#0F8A57;}
+  .badge-select.status-cancel{background-color:#FCE4E5; color:#C4292F;}
+  .job-map-link{
+    color:var(--accent); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:2px;
+  }
+  .job-map-link:hover{text-decoration:underline;}
   .modal-foot{
     display:flex; justify-content:space-between; gap:10px; padding:16px 22px;
     border-top:1px solid var(--border);
@@ -282,8 +298,82 @@
 
   @media (max-width:900px){
     .stats{grid-template-columns:repeat(2,1fr);}
-    .week-strip{grid-template-columns:repeat(7,minmax(40px,1fr)); overflow-x:auto;}
+  }
+
+  /* ---------- MOBILE (phones) ---------- */
+  @media (max-width:768px){
+    .app{flex-direction:column;}
+
+    /* sidebar becomes a fixed bottom tab bar */
+    .sidebar{
+      position:fixed; left:0; right:0; bottom:0; width:100%; min-width:0; height:auto;
+      flex-direction:row; align-items:center;
+      padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+      z-index:40; box-shadow:0 -2px 14px rgba(21,42,74,0.12);
+      border-top:1px solid rgba(255,255,255,0.06);
+    }
+    .brand, .sidebar-foot{display:none;}
+    .nav{flex-direction:row; justify-content:space-around; gap:2px; flex:1;}
+    .nav-item{
+      flex-direction:column; gap:3px; font-size:10px; font-weight:600;
+      padding:7px 2px; flex:1; text-align:center; border-radius:10px; white-space:nowrap;
+    }
+    .nav-item svg{width:19px; height:19px;}
+
+    .main{padding-bottom:0;}
+    .topbar{padding:14px 16px;}
+    .topbar h1{font-size:16.5px;}
+    .topbar .sub{font-size:11px;}
+    .content{padding:14px 14px calc(84px + env(safe-area-inset-bottom));}
+
+    /* floating add button replaces the inline topbar button */
+    #btnNewJob{
+      position:fixed; right:16px; bottom:calc(72px + env(safe-area-inset-bottom));
+      width:54px; height:54px; border-radius:50%; padding:0; justify-content:center;
+      box-shadow:0 8px 20px rgba(59,111,224,0.45); z-index:41;
+    }
+    #btnNewJob .btn-label{display:none;}
+    #btnNewJob svg{width:22px; height:22px;}
+
+    .stats{grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;}
+    .stat-card{padding:12px 14px;}
+    .stat-card .label{font-size:11.5px;}
+    .stat-card .num{font-size:20px;}
+
+    .panel{padding:14px 16px;}
+    .panel-head h2{font-size:14.5px;}
+    .tabs{width:100%;}
+    .tab{flex:1; text-align:center; padding:7px 6px;}
+
+    /* week strip becomes a horizontal scroller instead of a fixed 7-col grid */
+    .week-strip{
+      display:flex; grid-template-columns:none; overflow-x:auto; gap:8px;
+      padding-bottom:2px; -webkit-overflow-scrolling:touch; margin-bottom:16px;
+    }
+    .week-day{flex:0 0 54px;}
+
+    .job-row{padding:11px 4px; gap:10px;}
+    .job-title{font-size:13.5px;}
+    .job-sub{font-size:11.5px; gap:6px;}
+    .job-date-tag{display:none;}
+    .job-time{min-width:44px; font-size:12px;}
+    .badge{font-size:10px; padding:3px 7px;}
+
+    .cal-head .month-label{font-size:15px;}
+    .cal-grid{gap:5px;}
+    .cal-dow{font-size:10.5px;}
+    .cal-cell{min-height:58px; padding:5px; border-radius:8px;}
+    .cal-daynum{font-size:11px;}
+    .cal-job-chip{font-size:9px; padding:1px 4px; border-radius:4px;}
+    .cal-more{font-size:9px;}
+
+    .filters{flex-direction:column; gap:8px;}
+    .filters input, .filters select{width:100%;}
+
+    .modal{max-width:none; width:100%; max-height:94vh; border-radius:16px 16px 0 0; align-self:flex-end;}
+    .overlay{align-items:flex-end; padding:0;}
     .form-grid{grid-template-columns:1fr;}
+    .type-opt{font-size:11.5px; padding:9px 4px;}
   }
 </style>
 </head>
@@ -326,7 +416,7 @@
       </div>
       <button class="btn" id="btnNewJob">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        เพิ่มงานใหม่
+        <span class="btn-label">เพิ่มงานใหม่</span>
       </button>
     </div>
 
@@ -392,7 +482,8 @@
               <option value="">ทุกประเภทงาน</option>
               <option value="install">ติดตั้งป้าย</option>
               <option value="survey">สำรวจหน้างาน</option>
-              <option value="plan">วางแผนงาน</option>
+              <option value="maintenance">ซ่อมบำรุง</option>
+              <option value="other">อื่นๆ</option>
             </select>
             <select id="filterStatus">
               <option value="">ทุกสถานะ</option>
@@ -438,7 +529,8 @@
         <div class="type-picker">
           <div class="type-opt sel-install" data-type="install">ติดตั้งป้าย</div>
           <div class="type-opt sel-survey" data-type="survey">สำรวจหน้างาน</div>
-          <div class="type-opt sel-plan" data-type="plan">วางแผนงาน</div>
+          <div class="type-opt sel-maintenance" data-type="maintenance">ซ่อมบำรุง</div>
+          <div class="type-opt sel-other" data-type="other">อื่นๆ</div>
         </div>
       </div>
       <div class="form-row">
@@ -459,20 +551,31 @@
         <label>สถานที่หน้างาน</label>
         <input type="text" id="fAddress" placeholder="ที่อยู่ / จุดสังเกต">
       </div>
+      <div class="form-row">
+        <label>ปักหมุดแผนที่ (Google Maps)</label>
+        <input type="text" id="fMapLink" placeholder="วางลิงก์ Google Maps หรือกดปุ่มด้านล่าง">
+        <div class="btn-row">
+          <button type="button" class="btn btn-ghost btn-sm" id="btnUseLocation">📍 ใช้ตำแหน่งปัจจุบัน</button>
+        </div>
+      </div>
       <div class="form-grid">
         <div class="form-row">
           <label>เบอร์โทรติดต่อ</label>
           <input type="text" id="fPhone" placeholder="08x-xxx-xxxx">
         </div>
         <div class="form-row">
-          <label>สถานะ</label>
-          <select id="fStatus">
-            <option value="pending">รอดำเนินการ</option>
-            <option value="progress">กำลังดำเนินการ</option>
-            <option value="done">เสร็จแล้ว</option>
-            <option value="cancel">ยกเลิก</option>
-          </select>
+          <label>LINE ID ลูกค้า</label>
+          <input type="text" id="fLineId" placeholder="เช่น @signshop">
         </div>
+      </div>
+      <div class="form-row">
+        <label>สถานะ</label>
+        <select id="fStatus">
+          <option value="pending">รอดำเนินการ</option>
+          <option value="progress">กำลังดำเนินการ</option>
+          <option value="done">เสร็จแล้ว</option>
+          <option value="cancel">ยกเลิก</option>
+        </select>
       </div>
       <div class="form-row">
         <label>รายละเอียด / หมายเหตุ</label>
@@ -496,8 +599,8 @@
   "use strict";
 
   const STORAGE_KEY = "signflow_jobs_v1";
-  const TYPE_LABEL = {install:"ติดตั้งป้าย", survey:"สำรวจหน้างาน", plan:"วางแผนงาน"};
-  const TYPE_HEX    = {install:"#3B6FE0", survey:"#F5A524", plan:"#16B672"};
+  const TYPE_LABEL = {install:"ติดตั้งป้าย", survey:"สำรวจหน้างาน", maintenance:"ซ่อมบำรุง", other:"อื่นๆ"};
+  const TYPE_HEX    = {install:"#3B6FE0", survey:"#F5A524", maintenance:"#16B672", other:"#8892A6"};
   const STATUS_LABEL = {pending:"รอดำเนินการ", progress:"กำลังดำเนินการ", done:"เสร็จแล้ว", cancel:"ยกเลิก"};
   const DOW_TH = ["อา","จ","อ","พ","พฤ","ศ","ส"];
   const MONTH_TH = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
@@ -543,15 +646,16 @@
     const t = new Date();
     const fmt = (d)=> d.toISOString().slice(0,10);
     const mk = (offsetDays, o) => Object.assign({
-      id: cryptoId(), time:"09:00", address:"", phone:"", status:"pending", notes:"", updatedAt: Date.now()
+      id: cryptoId(), time:"09:00", address:"", phone:"", lineId:"", mapLink:"", status:"pending", notes:"", updatedAt: Date.now()
     }, {date: fmt(new Date(t.getFullYear(),t.getMonth(),t.getDate()+offsetDays))}, o);
     return [
-      mk(0, {title:"ร้านกาแฟดอยคำ - ป้ายหน้าร้าน", type:"install", time:"09:30", address:"ถ.สายเอเซีย มหาสารคาม", phone:"081-234-5678", status:"progress", notes:"ป้ายไฟ LED ขนาด 3x1.5 ม."}),
+      mk(0, {title:"ร้านกาแฟดอยคำ - ป้ายหน้าร้าน", type:"install", time:"09:30", address:"ถ.สายเอเซีย มหาสารคาม", phone:"081-234-5678", lineId:"@doikhamcafe", status:"progress", notes:"ป้ายไฟ LED ขนาด 3x1.5 ม."}),
       mk(0, {title:"บริษัท กรีนฟาร์ม จำกัด", type:"survey", time:"14:00", address:"นิคมอุตสาหกรรม", phone:"089-111-2222", status:"pending"}),
       mk(1, {title:"ร้านสะดวกซัก วอชแอนด์โก", type:"install", time:"10:00", address:"หน้ามหาวิทยาลัย", phone:"082-345-6789", status:"pending", notes:"ป้ายอะคริลิคพร้อมไฟ"}),
-      mk(3, {title:"คลินิกทันตกรรมยิ้มสวย", type:"plan", time:"13:30", address:"", phone:"086-777-8888", status:"pending", notes:"ประชุมวางแผนออกแบบป้าย"}),
+      mk(2, {title:"ร้านนวดแผนไทยสุขใจ - ซ่อมไฟป้าย", type:"maintenance", time:"11:00", address:"", phone:"080-999-1111", status:"pending", notes:"ไฟป้ายกระพริบ ต้องเปลี่ยนหลอด LED"}),
+      mk(3, {title:"คลินิกทันตกรรมยิ้มสวย", type:"other", time:"13:30", address:"", phone:"086-777-8888", status:"pending", notes:"ประชุมวางแผนออกแบบป้าย"}),
       mk(4, {title:"ปั๊มน้ำมัน พีที ถนนสายหลัก", type:"survey", time:"08:30", address:"ถ.แจ้งสนิท", phone:"", status:"pending"}),
-      mk(-1, {title:"ร้านนวดแผนไทยสุขใจ", type:"install", time:"11:00", address:"", phone:"080-999-1111", status:"pending", notes:"ค้างจากสัปดาห์ก่อน"}),
+      mk(-1, {title:"ร้านตัดผมสไตล์ - ซ่อมป้าย", type:"maintenance", time:"11:00", address:"", phone:"080-999-1111", status:"pending", notes:"ค้างจากสัปดาห์ก่อน"}),
     ];
   }
 
@@ -616,6 +720,7 @@
   }
 
   function jobRowHTML(j){
+    const mapChip = j.mapLink ? `<a class="job-map-link" href="${escapeHTML(j.mapLink)}" target="_blank" rel="noopener">📍 แผนที่</a>` : "";
     return `
       <div class="job-row" data-id="${j.id}">
         <div class="job-type-tag" style="background:${TYPE_HEX[j.type]}"></div>
@@ -623,13 +728,20 @@
           <div class="job-title">${escapeHTML(j.title)}</div>
           <div class="job-sub">
             <span>${TYPE_LABEL[j.type]}</span>
-            ${j.address ? `<span>📍 ${escapeHTML(j.address)}</span>` : ""}
+            ${j.address ? `<span>${escapeHTML(j.address)}</span>` : ""}
             ${j.phone ? `<span>📞 ${escapeHTML(j.phone)}</span>` : ""}
+            ${j.lineId ? `<span>💬 ${escapeHTML(j.lineId)}</span>` : ""}
+            ${mapChip}
           </div>
         </div>
         <div class="job-date-tag">${fmtDateTH(j.date)}</div>
         <div class="job-time">${j.time || "-"}</div>
-        <div class="badge ${j.status}">${STATUS_LABEL[j.status]}</div>
+        <select class="badge-select status-${j.status}" data-id="${j.id}">
+          <option value="pending" ${j.status==="pending"?"selected":""}>รอดำเนินการ</option>
+          <option value="progress" ${j.status==="progress"?"selected":""}>กำลังดำเนินการ</option>
+          <option value="done" ${j.status==="done"?"selected":""}>เสร็จแล้ว</option>
+          <option value="cancel" ${j.status==="cancel"?"selected":""}>ยกเลิก</option>
+        </select>
       </div>
     `;
   }
@@ -647,9 +759,37 @@
     attachRowClicks(el);
   }
 
+  function quickUpdateStatus(id, status){
+    const idx = jobs.findIndex(j=>j.id===id);
+    if(idx===-1) return;
+    const job = Object.assign({}, jobs[idx], {status, updatedAt: Date.now()});
+    if(cloudMode){
+      fbDb.collection("jobs").doc(id).set(job).catch(err=> fLog("อัปเดตสถานะไม่สำเร็จ: " + err.message));
+    } else {
+      jobs[idx] = job;
+      saveLocal();
+      renderAll();
+    }
+  }
+
   function attachRowClicks(container){
     container.querySelectorAll(".job-row").forEach(row=>{
-      row.addEventListener("click", ()=> openModal(row.dataset.id));
+      row.addEventListener("click", (e)=>{
+        if(e.target.closest(".badge-select") || e.target.closest(".job-map-link")) return;
+        openModal(row.dataset.id);
+      });
+    });
+    container.querySelectorAll(".badge-select").forEach(sel=>{
+      sel.className = "badge-select status-" + sel.value;
+      sel.addEventListener("click", e=> e.stopPropagation());
+      sel.addEventListener("change", e=>{
+        e.stopPropagation();
+        sel.className = "badge-select status-" + sel.value;
+        quickUpdateStatus(sel.dataset.id, sel.value);
+      });
+    });
+    container.querySelectorAll(".job-map-link").forEach(a=>{
+      a.addEventListener("click", e=> e.stopPropagation());
     });
   }
 
@@ -737,7 +877,9 @@
       document.getElementById("fDate").value = j.date;
       document.getElementById("fTime").value = j.time;
       document.getElementById("fAddress").value = j.address;
+      document.getElementById("fMapLink").value = j.mapLink || "";
       document.getElementById("fPhone").value = j.phone;
+      document.getElementById("fLineId").value = j.lineId || "";
       document.getElementById("fStatus").value = j.status;
       document.getElementById("fNotes").value = j.notes;
       deleteBtn.style.display = "inline-flex";
@@ -748,7 +890,9 @@
       document.getElementById("fDate").value = presetDate || todayStr();
       document.getElementById("fTime").value = "09:00";
       document.getElementById("fAddress").value = "";
+      document.getElementById("fMapLink").value = "";
       document.getElementById("fPhone").value = "";
+      document.getElementById("fLineId").value = "";
       document.getElementById("fStatus").value = "pending";
       document.getElementById("fNotes").value = "";
       deleteBtn.style.display = "none";
@@ -766,6 +910,21 @@
     });
   }
 
+  function useCurrentLocation(){
+    const btn = document.getElementById("btnUseLocation");
+    if(!navigator.geolocation){ alert("อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง"); return; }
+    const originalText = btn.textContent;
+    btn.disabled = true; btn.textContent = "กำลังค้นหาตำแหน่ง...";
+    navigator.geolocation.getCurrentPosition(function(pos){
+      const lat = pos.coords.latitude.toFixed(6), lng = pos.coords.longitude.toFixed(6);
+      document.getElementById("fMapLink").value = `https://www.google.com/maps?q=${lat},${lng}`;
+      btn.disabled = false; btn.textContent = originalText;
+    }, function(err){
+      alert("ไม่สามารถระบุตำแหน่งได้: " + err.message);
+      btn.disabled = false; btn.textContent = originalText;
+    }, {enableHighAccuracy:true, timeout:10000});
+  }
+
   function submitForm(){
     const title = document.getElementById("fTitle").value.trim();
     if(!title){ alert("กรุณากรอกชื่องาน / ลูกค้า"); return; }
@@ -776,7 +935,9 @@
       date,
       time: document.getElementById("fTime").value || "09:00",
       address: document.getElementById("fAddress").value.trim(),
+      mapLink: document.getElementById("fMapLink").value.trim(),
       phone: document.getElementById("fPhone").value.trim(),
+      lineId: document.getElementById("fLineId").value.trim(),
       status: document.getElementById("fStatus").value,
       notes: document.getElementById("fNotes").value.trim(),
       updatedAt: Date.now()
@@ -946,6 +1107,7 @@
   document.getElementById("btnCancel").addEventListener("click", closeModal);
   document.getElementById("btnSave").addEventListener("click", submitForm);
   document.getElementById("btnDelete").addEventListener("click", deleteCurrent);
+  document.getElementById("btnUseLocation").addEventListener("click", useCurrentLocation);
   document.getElementById("jobModalOverlay").addEventListener("click", (e)=>{
     if(e.target.id==="jobModalOverlay") closeModal();
   });
