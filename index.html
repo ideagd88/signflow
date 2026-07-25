@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IDEA88 SignFlow — ระบบนัด/ติดตั้งป้าย</title>
+<title>SignFlow — ระบบนัดติดตั้งป้าย</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -294,7 +294,7 @@
   <aside class="sidebar">
     <div class="brand">
       <div class="dot">🪧</div>
-      <div>IDEA88 FLOW</div>
+      <div>SignFlow</div>
     </div>
     <nav class="nav">
       <div class="nav-item active" data-view="dashboard">
@@ -410,39 +410,12 @@
       <div class="view" id="view-settings">
         <div class="panel settings-card">
           <h2>บันทึกข้อมูลออนไลน์ (Firebase)</h2>
-          <div class="desc">เชื่อมต่อครั้งเดียว แล้วทุกเครื่อง/ทุกคนในร้านที่เปิดแอปนี้จะเห็นข้อมูลชุดเดียวกันแบบเรียลไทม์ ไม่ต้อง login แยกคน ถ้าออฟไลน์ยังใช้งานได้ตามปกติ แล้วจะซิงค์อัตโนมัติเมื่อเน็ตกลับมา</div>
+          <div class="desc">ทุกเครื่องที่เปิดแอปนี้เชื่อมต่อข้อมูลชุดเดียวกันอัตโนมัติแบบเรียลไทม์ ไม่ต้องตั้งค่าอะไรเพิ่ม ถ้าออฟไลน์ยังใช้งานได้ตามปกติ แล้วจะซิงค์อัตโนมัติเมื่อเน็ตกลับมา</div>
 
-          <div class="status-pill off" id="fStatusPill"><span class="dot"></span><span id="fStatusText">ยังไม่ได้เชื่อมต่อ — ใช้งานแบบบันทึกในเครื่องนี้</span></div>
+          <div class="status-pill off" id="fStatusPill"><span class="dot"></span><span id="fStatusText">กำลังเชื่อมต่อ...</span></div>
 
-          <div class="settings-steps" id="fSetupSteps">
-            <b>ตั้งค่าครั้งแรก (ทำครั้งเดียว ~5 นาที ไม่มีขั้นตอน OAuth ที่ยุ่งยาก):</b>
-            <ol>
-              <li>ไปที่ <a href="https://console.firebase.google.com/" target="_blank" rel="noopener">console.firebase.google.com</a> → กด "Add project" ตั้งชื่ออะไรก็ได้ → สร้างโปรเจกต์</li>
-              <li>เมนูซ้าย → <b>Build → Firestore Database</b> → Create database → เลือก location ใกล้ๆ (เช่น asia-southeast1) → เริ่มด้วยโหมดใดก็ได้ (จะตั้ง rule เองด้านล่าง)</li>
-              <li>เมนูซ้าย → <b>Build → Authentication</b> → Get started → แท็บ Sign-in method → เปิดใช้ <b>Anonymous</b> (กด Enable แล้ว Save) — ใช้เพื่อกันคนนอกเข้าถึงข้อมูล โดยไม่ต้องให้พนักงาน login เอง</li>
-              <li>ไปที่ Firestore → แท็บ <b>Rules</b> → แทนที่ด้วยข้อความนี้ แล้วกด Publish:
-                <div class="rules-box">rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /jobs/{jobId} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}</div>
-              </li>
-              <li>เมนูซ้ายบน (ไอคอนเฟือง) → <b>Project settings</b> → เลื่อนลงหา "Your apps" → กดไอคอน <b>&lt;/&gt; (Web)</b> → ตั้งชื่อแอป → Register app</li>
-              <li>จะได้โค้ด <code>firebaseConfig = {...}</code> — คัดลอกทั้งก้อน (ตั้งแต่ <code>{</code> ถึง <code>}</code>) มาวางในช่องด้านล่าง</li>
-            </ol>
-          </div>
-
-          <div class="form-row">
-            <label>วาง Firebase Config (ทั้งก้อน {...})</label>
-            <textarea id="fConfigInput" style="min-height:110px; font-family:'Courier New',monospace; font-size:12.5px;" placeholder='{"apiKey": "...", "authDomain": "...", "projectId": "...", ...}'></textarea>
-          </div>
           <div class="btn-row">
-            <button class="btn btn-ghost btn-sm" id="btnSaveConfig">บันทึก Config</button>
-            <button class="btn btn-sm" id="btnConnectCloud" disabled>เชื่อมต่อข้อมูลออนไลน์</button>
-            <button class="btn btn-ghost btn-sm" id="btnDisconnectCloud" style="display:none;">ยกเลิกการเชื่อมต่อ</button>
+            <button class="btn btn-sm" id="btnConnectCloud">เชื่อมต่อใหม่</button>
           </div>
           <div class="sync-log" id="fSyncLog"></div>
         </div>
@@ -523,12 +496,23 @@ service cloud.firestore {
   "use strict";
 
   const STORAGE_KEY = "signflow_jobs_v1";
-  const F_CONFIG_KEY = "signflow_firebase_config";
   const TYPE_LABEL = {install:"ติดตั้งป้าย", survey:"สำรวจหน้างาน", plan:"วางแผนงาน"};
   const TYPE_HEX    = {install:"#3B6FE0", survey:"#F5A524", plan:"#16B672"};
   const STATUS_LABEL = {pending:"รอดำเนินการ", progress:"กำลังดำเนินการ", done:"เสร็จแล้ว", cancel:"ยกเลิก"};
   const DOW_TH = ["อา","จ","อ","พ","พฤ","ศ","ส"];
   const MONTH_TH = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+  // Firebase config is embedded so every device connects automatically — no per-device setup needed.
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBoPUoBRlhjrKVI7bDkI5lM3GkwDK91SzY",
+    authDomain: "ideaflow-d4ed8.firebaseapp.com",
+    databaseURL: "https://ideaflow-d4ed8-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "ideaflow-d4ed8",
+    storageBucket: "ideaflow-d4ed8.firebasestorage.app",
+    messagingSenderId: "210853759709",
+    appId: "1:210853759709:web:0df53ea5226bd66cf5a934",
+    measurementId: "G-DEMC83FB9M"
+  };
 
   let jobs = [];
   let editingId = null;
@@ -539,8 +523,7 @@ service cloud.firestore {
   // ---------- cloud (Firebase) state ----------
   let cloudMode = false;      // true once connected & receiving live data
   let fbApp = null, fbAuth = null, fbDb = null, fbUnsub = null;
-  let fConfig = null;
-  try{ fConfig = JSON.parse(localStorage.getItem(F_CONFIG_KEY) || "null"); }catch(e){ fConfig = null; }
+  const fConfig = FIREBASE_CONFIG;
 
   function cryptoId(){ return "j" + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
 
@@ -864,54 +847,28 @@ service cloud.firestore {
   }
 
   function renderSettingsView(){
-    document.getElementById("fConfigInput").value = fConfig ? JSON.stringify(fConfig, null, 2) : "";
-    document.getElementById("btnConnectCloud").disabled = !fConfig;
     updateCloudStatusUI();
   }
 
   function updateCloudStatusUI(status){
     const pill = document.getElementById("fStatusPill");
     const text = document.getElementById("fStatusText");
-    const connectBtn = document.getElementById("btnConnectCloud");
-    const disconnectBtn = document.getElementById("btnDisconnectCloud");
     if(cloudMode){
       pill.className = "status-pill on";
       text.textContent = "เชื่อมต่อแล้ว — ข้อมูลซิงค์แบบเรียลไทม์";
-      connectBtn.textContent = "เชื่อมต่อใหม่";
-      disconnectBtn.style.display = "inline-flex";
       document.getElementById("syncStatusFoot").innerHTML = "🟢 เชื่อมต่อออนไลน์แล้ว<br>ข้อมูลซิงค์กับทุกเครื่อง";
     } else if(status==="error"){
       pill.className = "status-pill err";
-      disconnectBtn.style.display = "none";
-      document.getElementById("syncStatusFoot").innerHTML = "ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์";
+      text.textContent = "เชื่อมต่อไม่สำเร็จ — ใช้งานแบบบันทึกในเครื่องนี้ไปก่อน";
+      document.getElementById("syncStatusFoot").innerHTML = "🟡 ยังไม่ได้เชื่อมต่อออนไลน์<br>ใช้งานแบบออฟไลน์";
     } else {
       pill.className = "status-pill off";
-      text.textContent = "ยังไม่ได้เชื่อมต่อ — ใช้งานแบบบันทึกในเครื่องนี้";
-      connectBtn.textContent = "เชื่อมต่อข้อมูลออนไลน์";
-      disconnectBtn.style.display = "none";
-      document.getElementById("syncStatusFoot").innerHTML = "ข้อมูลบันทึกในเครื่องนี้<br>ใช้งานได้แบบออฟไลน์";
-    }
-  }
-
-  function saveConfig(){
-    const raw = document.getElementById("fConfigInput").value.trim();
-    if(!raw){ alert("กรุณาวาง Firebase config"); return; }
-    try{
-      // allow pasting either raw JSON or "const firebaseConfig = {...};"
-      const jsonPart = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}")+1);
-      const parsed = Function('"use strict"; return (' + jsonPart + ')')();
-      if(!parsed.apiKey || !parsed.projectId) throw new Error("ไม่พบ apiKey หรือ projectId ใน config");
-      fConfig = parsed;
-      localStorage.setItem(F_CONFIG_KEY, JSON.stringify(fConfig));
-      document.getElementById("btnConnectCloud").disabled = false;
-      fLog("บันทึก config แล้ว กด \"เชื่อมต่อข้อมูลออนไลน์\" ได้เลย");
-    }catch(e){
-      alert("อ่าน config ไม่สำเร็จ: " + e.message + "\nตรวจสอบว่าคัดลอกมาทั้งก้อน { ... }");
+      text.textContent = "กำลังเชื่อมต่อ...";
+      document.getElementById("syncStatusFoot").innerHTML = "กำลังเชื่อมต่อออนไลน์...";
     }
   }
 
   function connectCloud(){
-    if(!fConfig){ alert("ใส่ config ก่อน"); return; }
     fLog("กำลังเชื่อมต่อ...");
     try{
       if(!fbApp){
@@ -980,15 +937,6 @@ service cloud.firestore {
     }
   }
 
-  function disconnectCloud(){
-    if(fbUnsub){ fbUnsub(); fbUnsub = null; }
-    cloudMode = false;
-    loadLocal();
-    updateCloudStatusUI();
-    renderAll();
-    fLog("ยกเลิกการเชื่อมต่อแล้ว กลับไปใช้ข้อมูลในเครื่องนี้");
-  }
-
   // ---------- events ----------
   document.querySelectorAll(".nav-item").forEach(el=>{
     el.addEventListener("click", ()=> switchView(el.dataset.view));
@@ -1033,18 +981,13 @@ service cloud.firestore {
   document.getElementById("searchInput").addEventListener("input", renderAllJobs);
   document.getElementById("filterType").addEventListener("change", renderAllJobs);
   document.getElementById("filterStatus").addEventListener("change", renderAllJobs);
-  document.getElementById("btnSaveConfig").addEventListener("click", saveConfig);
   document.getElementById("btnConnectCloud").addEventListener("click", connectCloud);
-  document.getElementById("btnDisconnectCloud").addEventListener("click", disconnectCloud);
 
   // ---------- init ----------
   loadLocal();
   renderAll();
   document.getElementById("topbarSub").textContent = todayLabel();
-  if(fConfig){
-    // auto-reconnect if config was saved from a previous session
-    connectCloud();
-  }
+  connectCloud(); // config is embedded, so always attempt to connect automatically
 })();
 </script>
 </body>
